@@ -1,0 +1,384 @@
+@inproceedings{ajmaniModularSoftwareUpgrades2006,
+  title = {Modular {{Software Upgrades}} for {{Distributed Systems}}},
+  booktitle = {{{ECOOP}} 2006 – {{Object-Oriented Programming}}},
+  author = {Ajmani, Sameer and Liskov, Barbara and Shrira, Liuba},
+  editor = {Thomas, Dave},
+  date = {2006},
+  pages = {452--476},
+  publisher = {Springer},
+  location = {Berlin, Heidelberg},
+  doi = {10.1007/11785477_26},
+  abstract = {Upgrading the software of long-lived, highly-available distributed systems is difficult. It is not possible to upgrade all the nodes in a system at once, since some nodes may be unavailable and halting the system for an upgrade is unacceptable. Instead, upgrades must happen gradually, and there may be long periods of time when different nodes run different software versions and need to communicate using incompatible protocols. We present a methodology and infrastructure that make it possible to upgrade distributed systems automatically while limiting service disruption. We introduce new ways to reason about correctness in a multi-version system. We also describe a prototype implementation that supports automatic upgrades with modest overhead.},
+  isbn = {978-3-540-35727-8},
+  langid = {english},
+  file = {/home/mjs/Zotero/storage/PA5995AF/Ajmani et al. - 2006 - Modular Software Upgrades for Distributed Systems.pdf}
+}
+
+@inproceedings{athalyeVerifyingHardwareSecurity2022,
+  title = {Verifying {{Hardware Security Modules}} with \{\vphantom\}{{Information-Preserving}}\vphantom\{\} {{Refinement}}},
+  author = {Athalye, Anish and Kaashoek, M. Frans and Zeldovich, Nickolai},
+  date = {2022},
+  pages = {503--519},
+  url = {https://www.usenix.org/conference/osdi22/presentation/athalye},
+  urldate = {2024-11-13},
+  eventtitle = {16th {{USENIX Symposium}} on {{Operating Systems Design}} and {{Implementation}} ({{OSDI}} 22)},
+  isbn = {978-1-939133-28-1},
+  langid = {english},
+  file = {/home/mjs/Zotero/storage/AHFCPZNF/Athalye et al. - 2022 - Verifying Hardware Security Modules with Information-Preserving Refinement.pdf}
+}
+
+@inproceedings{chajedArgosyVerifyingLayered2019,
+  title = {Argosy: Verifying Layered Storage Systems with Recovery Refinement},
+  shorttitle = {Argosy},
+  booktitle = {Proceedings of the 40th {{ACM SIGPLAN Conference}} on {{Programming Language Design}} and {{Implementation}}},
+  author = {Chajed, Tej and Tassarotti, Joseph and Kaashoek, M. Frans and Zeldovich, Nickolai},
+  date = {2019-06-08},
+  series = {{{PLDI}} 2019},
+  pages = {1054--1068},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/3314221.3314585},
+  url = {https://dl.acm.org/doi/10.1145/3314221.3314585},
+  urldate = {2024-11-13},
+  abstract = {Storage systems make persistence guarantees even if the system crashes at any time, which they achieve using recovery procedures that run after a crash. We present Argosy, a framework for machine-checked proofs of storage systems that supports layered recovery implementations with modular proofs. Reasoning about layered recovery procedures is especially challenging because the system can crash in the middle of a more abstract layer’s recovery procedure and must start over with the lowest-level recovery procedure. This paper introduces recovery refinement, a set of conditions that ensure proper implementation of an interface with a recovery procedure. Argosy includes a proof that recovery refinements compose, using Kleene algebra for concise definitions and metatheory. We implemented Crash Hoare Logic, the program logic used by FSCQ, to prove recovery refinement, and demonstrated the whole system by verifying an example of layered recovery featuring a write-ahead log running on top of a disk replication system. The metatheory of the framework, the soundness of the program logic, and these examples are all verified in the Coq proof assistant.},
+  isbn = {978-1-4503-6712-7},
+  file = {/home/mjs/Zotero/storage/KX6SBQZ7/Chajed et al. - 2019 - Argosy verifying layered storage systems with recovery refinement.pdf}
+}
+
+@inproceedings{chajedVerifyingConcurrentCrashsafe2019,
+  title = {Verifying Concurrent, Crash-Safe Systems with {{Perennial}}},
+  booktitle = {Proceedings of the 27th {{ACM Symposium}} on {{Operating Systems Principles}}},
+  author = {Chajed, Tej and Tassarotti, Joseph and Kaashoek, M. Frans and Zeldovich, Nickolai},
+  date = {2019-10-27},
+  series = {{{SOSP}} '19},
+  pages = {243--258},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/3341301.3359632},
+  url = {https://dl.acm.org/doi/10.1145/3341301.3359632},
+  urldate = {2025-01-23},
+  abstract = {This paper introduces Perennial, a framework for verifying concurrent, crash-safe systems. Perennial extends the Iris concurrency framework with three techniques to enable crash-safety reasoning: recovery leases, recovery helping, and versioned memory. To ease development and deployment of applications, Perennial provides Goose, a subset of Go and a translator from that subset to a model in Perennial with support for reasoning about Go threads, data structures, and file-system primitives. We implemented and verified a crash-safe, concurrent mail server using Perennial and Goose that achieves speedup on multiple cores. Both Perennial and Iris use the Coq proof assistant, and the mail server and the framework's proofs are machine checked.},
+  isbn = {978-1-4503-6873-5},
+  file = {/home/mjs/Zotero/storage/Z3KPR747/Chajed et al. - 2019 - Verifying concurrent, crash-safe systems with Perennial.pdf}
+}
+
+@thesis{driscoll2013checking,
+  type = {phdthesis},
+  title = {Checking Format Compatibility of Programs Using Automata},
+  author = {Driscoll, Evan E},
+  date = {2013},
+  institution = {The University of Wisconsin-Madison},
+  file = {/home/mjs/Zotero/storage/NVCSNNYC/Driscoll - 2013 - Checking format compatibility of programs using automata.pdf}
+}
+
+@inproceedings{dumitrasWhyUpgradesFail2009,
+  title = {Why {{Do Upgrades Fail}} and {{What Can We Do}} about {{It}}?},
+  booktitle = {Middleware 2009},
+  author = {Dumitraş, Tudor and Narasimhan, Priya},
+  editor = {Bacon, Jean M. and Cooper, Brian F.},
+  date = {2009},
+  pages = {349--372},
+  publisher = {Springer},
+  location = {Berlin, Heidelberg},
+  doi = {10.1007/978-3-642-10445-9_18},
+  abstract = {Enterprise-system upgrades are unreliable and often produce downtime or data-loss. Errors in the upgrade procedure, such as broken dependencies, constitute the leading cause of upgrade failures. We propose a novel upgrade-centric fault model, based on data from three independent sources, which focuses on the impact of procedural errors rather than software defects. We show that current approaches for upgrading enterprise systems, such as rolling upgrades, are vulnerable to these faults because the upgrade is not an atomic operation and it risks breaking hidden dependencies among the distributed system-components. We also present a mechanism for tolerating complex procedural errors during an upgrade. Our system, called Imago, improves availability in the fault-free case, by performing an online upgrade, and in the faulty case, by reducing the risk of failure due to breaking hidden dependencies. Imago performs an end-to-end upgrade atomically and dependably by dedicating separate resources to the new version and by isolating the old version from the upgrade procedure. Through fault injection, we show that Imago is more reliable than online-upgrade approaches that rely on dependency-tracking and that create system states with mixed versions.},
+  isbn = {978-3-642-10445-9},
+  langid = {english},
+  keywords = {Application Server,Atomic Operation,Enterprise System,Latent Error,Software Defect},
+  file = {/home/mjs/Zotero/storage/NG7QKU3H/Dumitraş and Narasimhan - 2009 - Why Do Upgrades Fail and What Can We Do about It.pdf}
+}
+
+@article{fruminAppendixCoqDevelopment2018,
+  title = {Appendix and {{Coq}} Development of {{ReLoC}}: {{A}} Mechanised Relational Logic for Fine-Grained Concurrency},
+  author = {Frumin, Dan and Krebbers, Robbert and Birkedal, Lars},
+  date = {2018},
+  url = {http://cs.ru.nl/~dfrumin/reloc/},
+  urldate = {2025-02-06},
+  file = {/home/mjs/Zotero/storage/EX2QTE2E/Frumin et al. - 2018 - Appendix and Coq development of ReLoC A mechanised relational logic for fine-grained concurrency.pdf}
+}
+
+@inproceedings{fruminReLoCMechanisedRelational2018,
+  title = {{{ReLoC}}: {{A Mechanised Relational Logic}} for {{Fine-Grained Concurrency}}},
+  shorttitle = {{{ReLoC}}},
+  booktitle = {Proceedings of the 33rd {{Annual ACM}}/{{IEEE Symposium}} on {{Logic}} in {{Computer Science}}},
+  author = {Frumin, Dan and Krebbers, Robbert and Birkedal, Lars},
+  date = {2018-07-09},
+  series = {{{LICS}} '18},
+  pages = {442--451},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/3209108.3209174},
+  url = {https://doi.org/10.1145/3209108.3209174},
+  urldate = {2025-01-23},
+  abstract = {We present ReLoC: a logic for proving refinements of programs in a language with higher-order state, fine-grained concurrency, polymorphism and recursive types. The core of our logic is a judgement e ⪯ e': τ, which expresses that a program e refines a program e' at type τ. In contrast to earlier work on refinements for languages with higher-order state and concurrency, ReLoC provides type- and structure-directed rules for manipulating this judgement, whereas previously, such proofs were carried out by unfolding the judgement into its definition in the model. These more abstract proof rules make it simpler to carry out refinement proofs.Moreover, we introduce logically atomic relational specifications: a novel approach for relational specifications for compound expressions that take effect at a single instant in time. We demonstrate how to formalise and prove such relational specifications in ReLoC, allowing for more modular proofs.ReLoC is built on top of the expressive concurrent separation logic Iris, allowing us to leverage features of Iris such as invariants and ghost state. We provide a mechanisation of our logic in Coq, which does not just contain a proof of soundness, but also tactics for interactively carrying out refinements proofs. We have used these tactics to mechanise several examples, which demonstrates the practicality and modularity of our logic.},
+  isbn = {978-1-4503-5583-4},
+  file = {/home/mjs/Zotero/storage/ZLKICM9J/Frumin et al. - 2018 - ReLoC A Mechanised Relational Logic for Fine-Grained Concurrency.pdf}
+}
+
+@inproceedings{gkantsidisPlanetScaleSoftware2006,
+  title = {Planet Scale Software Updates},
+  booktitle = {Proceedings of the 2006 Conference on {{Applications}}, Technologies, Architectures, and Protocols for Computer Communications},
+  author = {Gkantsidis, Christos and Karagiannis, Thomas and VojnoviC, Milan},
+  date = {2006-08-11},
+  series = {{{SIGCOMM}} '06},
+  pages = {423--434},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/1159913.1159961},
+  url = {https://dl.acm.org/doi/10.1145/1159913.1159961},
+  urldate = {2025-01-23},
+  abstract = {Fast and effective distribution of software updates (a.k.a. patches) to millions of Internet users has evolved into a critical task over the last years. In this paper, we characterize "Windows Update", one of the largest update services in the world, with the aim to draw general guidelines on how to best design and architect a fast and effective planet-scale patch dissemination system. To this end, we analyze an extensive set of data traces collected over the period of a year, consisting of billions of queries from over 300 million computers. Based on empirical observations and analytical results, we identify interesting properties of today's update traffic and user behavior.Building on this analysis, we consider alternative patch delivery strategies such as caching and peer-to-peer and evaluate their performance. We identify key factors that determine the effectiveness of these schemes in reducing the server workload and the network traffic, and in speeding-up the patch delivery. Most of our findings are invariant properties induced by either user behavior or architectural characteristics of today's Internet, and thus apply to the general problem of Internet-wide dissemination of software updates.},
+  isbn = {978-1-59593-308-9},
+  file = {/home/mjs/Zotero/storage/JLWXYC45/Gkantsidis et al. - 2006 - Planet scale software updates.pdf}
+}
+
+@article{gramoliRollupNonDisruptiveRolling2016,
+  title = {Rollup: {{Non-Disruptive Rolling Upgrade}} with {{Fast Consensus-Based Dynamic Reconfigurations}}},
+  shorttitle = {Rollup},
+  author = {Gramoli, Vincent and Bass, Len and Fekete, Alan and Sun, Daniel W.},
+  date = {2016-09},
+  journaltitle = {IEEE Transactions on Parallel and Distributed Systems},
+  volume = {27},
+  number = {9},
+  pages = {2711--2724},
+  issn = {1558-2183},
+  doi = {10.1109/TPDS.2015.2499772},
+  url = {https://ieeexplore.ieee.org/abstract/document/7327226},
+  urldate = {2025-01-23},
+  abstract = {Rolling upgrade consists of upgrading progressively the servers of a distributed system to reduce service downtime.Upgrading a subset of servers requires a well-engineered cluster membership protocol to maintain, in the meantime, the availability of the system state. Existing cluster membership reconfigurations, like CoreOS etcd, rely on a primary not only for reconfiguration but also for storing information. At any moment, there can be at most one primary, whose replacement induces disruption. We propose Rollup, a non-disruptive rolling upgrade protocol with a fast consensus-based reconfiguration. Rollup relies on a candidate leader only for the reconfiguration and scalable biquorums for service requests. While Rollup implements a non-disruptive cluster membership protocol, it does not offer a full-fledged coordination service. We analyzed Rollup theoretically and experimentally on an isolated network of 26 physical machines and an Amazon EC2 cluster of 59 virtual machines. Our results show an 8-fold speedup compared to a rolling upgrade based on a primary for reconfiguration.},
+  eventtitle = {{{IEEE Transactions}} on {{Parallel}} and {{Distributed Systems}}},
+  keywords = {active replication,Australia,cluster management,Fault tolerance,Fault tolerant systems,membership change,online upgrade,Optimization,Paxos,Protocols,Quorum,Radiation detectors,Servers},
+  file = {/home/mjs/Zotero/storage/WXFPFW4R/Gramoli et al. - 2016 - Rollup Non-Disruptive Rolling Upgrade with Fast Consensus-Based Dynamic Reconfigurations.pdf;/home/mjs/Zotero/storage/72K267SP/7327226.html}
+}
+
+@inproceedings{Gray1986WhyDC,
+  title = {Why Do Computers Stop and What Can Be Done about It?},
+  booktitle = {Symposium on Reliability in Distributed Software and Database Systems},
+  author = {Gray, Jim},
+  date = {1986},
+  file = {/home/mjs/Zotero/storage/9KJYS89A/Gray - 1986 - Why do computers stop and what can be done about it.pdf}
+}
+
+@inproceedings{kohInteractionTreesSpecifying2019,
+  title = {From {{C}} to Interaction Trees: Specifying, Verifying, and Testing a Networked Server},
+  shorttitle = {From {{C}} to Interaction Trees},
+  booktitle = {Proceedings of the 8th {{ACM SIGPLAN International Conference}} on {{Certified Programs}} and {{Proofs}}},
+  author = {Koh, Nicolas and Li, Yao and Li, Yishuai and Xia, Li-yao and Beringer, Lennart and Honoré, Wolf and Mansky, William and Pierce, Benjamin C. and Zdancewic, Steve},
+  date = {2019-01-14},
+  series = {{{CPP}} 2019},
+  pages = {234--248},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/3293880.3294106},
+  url = {https://dl.acm.org/doi/10.1145/3293880.3294106},
+  urldate = {2025-02-17},
+  abstract = {We present the first formal verification of a networked server implemented in C. Interaction trees, a general structure for representing reactive computations, are used to tie together disparate verification and testing tools (Coq, VST, and QuickChick) and to axiomatize the behavior of the operating system on which the server runs (CertiKOS). The main theorem connects a specification of acceptable server behaviors, written in a straightforward “one client at a time” style, with the CompCert semantics of the C program. The variability introduced by low-level buffering of messages and interleaving of multiple TCP connections is captured using network refinement, a variant of observational refinement.},
+  isbn = {978-1-4503-6222-1},
+  file = {/home/mjs/Zotero/storage/I8XY2A5T/Koh et al. - 2019 - From C to interaction trees specifying, verifying, and testing a networked server.pdf}
+}
+
+@article{kozenPracticalCoinduction2017,
+  title = {Practical Coinduction},
+  author = {Kozen, Dexter and Silva, Alexandra},
+  date = {2017-10},
+  journaltitle = {Mathematical Structures in Computer Science},
+  volume = {27},
+  number = {7},
+  pages = {1132--1152},
+  issn = {0960-1295, 1469-8072},
+  doi = {10.1017/S0960129515000493},
+  url = {https://www.cambridge.org/core/journals/mathematical-structures-in-computer-science/article/practical-coinduction/213DA61062B9C23F7E6BF3CB0A419AFA#},
+  urldate = {2025-02-19},
+  abstract = {Induction is a well-established proof principle that is taught in most undergraduate programs in mathematics and computer science. In computer science, it is used primarily to reason about inductively defined datatypes such as finite lists, finite trees and the natural numbers. Coinduction is the dual principle that can be used to reason about coinductive datatypes such as infinite streams or trees, but it is not as widespread or as well understood. In this paper, we illustrate through several examples the use of coinduction in informal mathematical arguments. Our aim is to promote the principle as a useful tool for the working mathematician and to bring it to a level of familiarity on par with induction. We show that coinduction is not only about bisimilarity and equality of behaviors, but also applicable to a variety of functions and relations defined on coinductive datatypes.},
+  langid = {english},
+  file = {/home/mjs/Zotero/storage/79J849L8/Kozen and Silva - 2017 - Practical coinduction.pdf}
+}
+
+@online{LanguageGuideProto,
+  title = {Language {{Guide}} (Proto 3)},
+  url = {https://protobuf.dev/programming-guides/proto3/},
+  urldate = {2025-04-09},
+  abstract = {Covers how to use the proto3 revision of the Protocol Buffers language in your project.},
+  langid = {english},
+  file = {/home/mjs/Zotero/storage/QXM2JNRK/proto3.html}
+}
+
+@inproceedings{liCharacterizingEthereumUpgradable2024,
+  title = {Characterizing {{Ethereum Upgradable Smart Contracts}} and {{Their Security Implications}}},
+  booktitle = {Proceedings of the {{ACM Web Conference}} 2024},
+  author = {Li, Xiaofan and Yang, Jin and Chen, Jiaqi and Tang, Yuzhe and Gao, Xing},
+  date = {2024-05-13},
+  series = {{{WWW}} '24},
+  pages = {1847--1858},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/3589334.3645640},
+  url = {https://dl.acm.org/doi/10.1145/3589334.3645640},
+  urldate = {2025-03-06},
+  abstract = {Upgradeable smart contracts (USCs) have been widely adopted to enable modifying deployed smart contracts. While USCs bring great flexibility to developers, improper usage might introduce new security issues, potentially allowing attackers to hijack USCs and their users. In this paper, we conduct a large-scale measurement study to characterize USCs and their security implications in the wild. We summarize six commonly used USC patterns and develop a tool, USCDetector, to identify USCs without needing source code. Particularly, USCDetector collects various information such as bytecode and transaction information to construct upgrade chains for USCs and disclose potentially vulnerable ones. We evaluate USCDetector using verified smart contracts (i.e., with source code) as ground truth and show that USCDetector can achieve high accuracy with a precision of 96.26\%. We then use USCDetector to conduct a large-scale study on Ethereum, covering a total of 60,251,064 smart contracts. USCDetecor constructs 10,218 upgrade chains and discloses multiple real-world USCs with potential security issues.},
+  isbn = {979-8-4007-0171-9},
+  file = {/home/mjs/Zotero/storage/2KYJD6YX/Li et al. - 2024 - Characterizing Ethereum Upgradable Smart Contracts and Their Security Implications.pdf}
+}
+
+@book{lynch1988introduction,
+  title = {An Introduction to Input/Output Automata},
+  author = {Lynch, Nancy A and Tuttle, Mark R},
+  date = {1988},
+  publisher = {Laboratory for Computer Science, Massachusetts Institute of Technology},
+  file = {/home/mjs/Zotero/storage/MSS4GN9U/Lynch and Tuttle - 1988 - An introduction to inputoutput automata.pdf}
+}
+
+@book{lynchDistributedAlgorithms1996,
+  title = {Distributed {{Algorithms}}},
+  author = {Lynch, Nancy A.},
+  date = {1996-03},
+  publisher = {Morgan Kaufmann Publishers Inc.},
+  location = {San Francisco, CA, USA},
+  abstract = {In Distributed Algorithms, Nancy Lynch provides a blueprint for designing, implementing, and analyzing distributed algorithms. She directs her book at a wide audience, including students, programmers, system designers, and researchers. Distributed Algorithms contains the most significant algorithms and impossibility results in the area, all in a simple automata-theoretic setting. The algorithms are proved correct, and their complexity is analyzed according to precisely defined complexity measures. The problems covered include resource allocation, communication, consensus among distributed processes, data consistency, deadlock detection, leader election, global snapshots, and many others. The material is organized according to the system model-first by the timing model and then by the interprocess communication mechanism. The material on system models is isolated in separate chapters for easy reference. The presentation is completely rigorous, yet is intuitive enough for immediate comprehension. This book familiarizes readers with important problems, algorithms, and impossibility results in the area: readers can then recognize the problems when they arise in practice, apply the algorithms to solve them, and use the impossibility results to determine whether problems are unsolvable. The book also provides readers with the basic mathematical tools for designing new algorithms and proving new impossibility results. In addition, it teaches readers how to reason carefully about distributed algorithms-to model them formally, devise precise specifications for their required behavior, prove their correctness, and evaluate their performance with realistic measures. Table of Contents 1 Introduction 2 Modelling I; Synchronous Network Model 3 Leader Election in a Synchronous Ring 4 Algorithms in General Synchronous Networks 5 Distributed Consensus with Link Failures 6 Distributed Consensus with Process Failures 7 More Consensus Problems 8 Modelling II: Asynchronous System Model 9 Modelling III: Asynchronous Shared Memory Model 10 Mutual Exclusion 11 Resource Allocation 12 Consensus 13 Atomic Objects 14 Modelling IV: Asynchronous Network Model 15 Basic Asynchronous Network Algorithms 16 Synchronizers 17 Shared Memory versus Networks 18 Logical Time 19 Global Snapshots and Stable Properties 20 Network Resource Allocation 21 Asynchronous Networks with Process Failures 22 Data Link Protocols 23 Partially Synchronous System Models 24 Mutual Exclusion with Partial Synchrony 25 Consensus with Partial Synchrony},
+  isbn = {978-0-08-050470-4},
+  pagetotal = {904},
+  file = {/home/mjs/Zotero/storage/3IXINZHI/Lynch - 1996 - Distributed Algorithms.pdf}
+}
+
+@inproceedings{neamtiuCloudSoftwareUpgrades2011,
+  title = {Cloud Software Upgrades: {{Challenges}} and Opportunities},
+  shorttitle = {Cloud Software Upgrades},
+  booktitle = {2011 {{International Workshop}} on the {{Maintenance}} and {{Evolution}} of {{Service-Oriented}} and {{Cloud-Based Systems}}},
+  author = {Neamtiu, Iulian and Dumitraş, Tudor},
+  date = {2011-09},
+  pages = {1--10},
+  issn = {2326-6937},
+  doi = {10.1109/MESOCA.2011.6049037},
+  url = {https://ieeexplore.ieee.org/abstract/document/6049037},
+  urldate = {2025-01-23},
+  abstract = {The fast evolution pace for cloud computing software is on a collision course with our growing reliance on cloud computing. On one hand, cloud software must have the agility to evolve rapidly, in order to remain competitive; on the other hand, more and more critical services become dependent on the cloud and demand high availability through firm Service Level Agreements (SLAs) for cloud infrastructures. This race between the needs to increase both the cloud upgrade frequency and the service availability is unsustainable. In this paper we highlight challenges and opportunities for upgrades in the cloud. We survey the release histories of several cloud applications to analyze their evolution pace, and we discuss the shortcomings with current cloud upgrade mechanisms. We outline several solutions for sustaining this evolution while improving availability, by focusing on the novel characteristics of cloud computing. By discussing several promising directions for realizing this vision, we propose a research agenda for the future of software upgrades in the cloud.},
+  eventtitle = {2011 {{International Workshop}} on the {{Maintenance}} and {{Evolution}} of {{Service-Oriented}} and {{Cloud-Based Systems}}},
+  keywords = {Availability,Cloud computing,Electronic publishing,Encyclopedias},
+  file = {/home/mjs/Zotero/storage/ED89RGZ2/Neamtiu and Dumitraş - 2011 - Cloud software upgrades Challenges and opportunities.pdf;/home/mjs/Zotero/storage/2GRGKRZ7/6049037.html}
+}
+
+@inproceedings{niASN1ProvablyCorrect2023,
+  title = {{{ASN1}}*: {{Provably Correct}}, {{Non-malleable Parsing}} for {{ASN}}.1 {{DER}}},
+  shorttitle = {{{ASN1}}*},
+  booktitle = {Proceedings of the 12th {{ACM SIGPLAN International Conference}} on {{Certified Programs}} and {{Proofs}}},
+  author = {Ni, Haobin and Delignat-Lavaud, Antoine and Fournet, Cédric and Ramananandro, Tahina and Swamy, Nikhil},
+  date = {2023-01-11},
+  series = {{{CPP}} 2023},
+  pages = {275--289},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/3573105.3575684},
+  url = {https://dl.acm.org/doi/10.1145/3573105.3575684},
+  urldate = {2025-03-25},
+  abstract = {Abstract Syntax Notation One (ASN.1) is a language for structured data exchange between computers, standardized by both ITU-T and ISO/IEC since 1984. The Distinguished Encoding Rules (DER) specify its non-malleable binary format: for a given ASN.1 data type, every value has a distinct, unique binary representation. ASN.1 DER is used in many security-critical interfaces for telecommunications and networking, such as the X.509 public key infrastructure, where non-malleability is essential. However, due to the expressiveness and flexibility of the general-purpose ASN.1 language, correctly parsing ASN.1 DER data formats is still considered a serious security challenge in practice.   We present ASN1*, the first formalization of ASN.1 DER with a mechanized proof of non-malleability. Our development provides a shallow embedding of ASN.1 in the F* proof assistant and formalizes its DER semantics within the EverParse parser generator framework. It guarantees that any ASN.1 data encoded using our DER semantics is non-malleable. It yields verified code that parses valid binary representations into values of the corresponding ASN.1 data type while rejecting invalid ones.   We empirically confirm that our semantics models ASN.1 DER usage in practice by evaluating ASN1* parsers extracted to OCaml on both positive and negative test cases involving X.509 certificates and Certificate Revocation Lists (CRLs).},
+  isbn = {979-8-4007-0026-2},
+  file = {/home/mjs/Zotero/storage/HP969Y97/Ni et al. - 2023 - ASN1 Provably Correct, Non-malleable Parsing for ASN.1 DER.pdf}
+}
+
+@inproceedings{ramananandroEverParseVerifiedSecure2019,
+  title = {\{\vphantom\}{{EverParse}}\vphantom\{\}: {{Verified Secure}} \{\vphantom\}{{Zero-Copy}}\vphantom\{\} {{Parsers}} for {{Authenticated Message Formats}}},
+  shorttitle = {\{\vphantom\}{{EverParse}}\vphantom\{\}},
+  author = {Ramananandro, Tahina and Delignat-Lavaud, Antoine and Fournet, Cédric and Swamy, Nikhil and Chajed, Tej and Kobeissi, Nadim and Protzenko, Jonathan},
+  date = {2019},
+  pages = {1465--1482},
+  url = {https://www.usenix.org/conference/usenixsecurity19/presentation/delignat-lavaud},
+  urldate = {2025-03-06},
+  eventtitle = {28th {{USENIX Security Symposium}} ({{USENIX Security}} 19)},
+  isbn = {978-1-939133-06-9},
+  langid = {english},
+  file = {/home/mjs/Zotero/storage/TB7TC9QK/Ramananandro et al. - 2019 - EverParse Verified Secure Zero-Copy Parsers for Authenticated Message Formats.pdf}
+}
+
+@article{reitblattAbstractionsNetworkUpdate2012,
+  title = {Abstractions for Network Update},
+  author = {Reitblatt, Mark and Foster, Nate and Rexford, Jennifer and Schlesinger, Cole and Walker, David},
+  date = {2012-08-13},
+  journaltitle = {SIGCOMM Comput. Commun. Rev.},
+  volume = {42},
+  number = {4},
+  pages = {323--334},
+  issn = {0146-4833},
+  doi = {10.1145/2377677.2377748},
+  url = {https://doi.org/10.1145/2377677.2377748},
+  urldate = {2025-01-23},
+  abstract = {Configuration changes are a common source of instability in networks, leading to outages, performance disruptions, and security vulnerabilities. Even when the initial and final configurations are correct, the update process itself often steps through intermediate configurations that exhibit incorrect behaviors. This paper introduces the notion of consistent network updates---updates that are guaranteed to preserve well-defined behaviors when transitioning mbetween configurations. We identify two distinct consistency levels, per-packet and per-flow, and we present general mechanisms for implementing them in Software-Defined Networks using switch APIs like OpenFlow. We develop a formal model of OpenFlow networks, and prove that consistent updates preserve a large class of properties. We describe our prototype implementation, including several optimizations that reduce the overhead required to perform consistent updates. We present a verification tool that leverages consistent updates to significantly reduce the complexity of checking the correctness of network control software. Finally, we describe the results of some simple experiments demonstrating the effectiveness of these optimizations on example applications.},
+  file = {/home/mjs/Zotero/storage/LCSWDBGT/Reitblatt et al. - 2012 - Abstractions for network update.pdf}
+}
+
+@inproceedings{sorensenFormallySpecifyingVerifying2024,
+  title = {Towards {{Formally Specifying}} and {{Verifying Smart Contract Upgrades}} in {{Coq}}},
+  booktitle = {5th {{International Workshop}} on {{Formal Methods}} for {{Blockchains}} ({{FMBC}} 2024)},
+  author = {Sorensen, Derek},
+  editor = {Bernardo, Bruno and Marmsoler, Diego},
+  date = {2024},
+  series = {Open {{Access Series}} in {{Informatics}} ({{OASIcs}})},
+  volume = {118},
+  pages = {7:1--7:14},
+  publisher = {Schloss Dagstuhl – Leibniz-Zentrum für Informatik},
+  location = {Dagstuhl, Germany},
+  issn = {2190-6807},
+  doi = {10.4230/OASIcs.FMBC.2024.7},
+  url = {https://drops.dagstuhl.de/entities/document/10.4230/OASIcs.FMBC.2024.7},
+  urldate = {2025-03-06},
+  isbn = {978-3-95977-317-1},
+  keywords = {formal methods,interactive theorem prover,smart contract upgrades,smart contract verification},
+  file = {/home/mjs/Zotero/storage/S9BBTE39/Sorensen - 2024 - Towards Formally Specifying and Verifying Smart Contract Upgrades in Coq.pdf;/home/mjs/Zotero/storage/3B45XC8L/OASIcs.FMBC.2024.html}
+}
+
+@misc{swamy2023proof,
+  title = {Proof-Oriented Programming in {{F}}*},
+  author = {Swamy, Nikhil and Martinez, Guido and Rastogi, Aseem},
+  date = {2023},
+  file = {/home/mjs/Zotero/storage/SZJQHWJL/Swamy et al. - 2023 - Proof-oriented programming in F.pdf}
+}
+
+@article{xiaInteractionTreesRepresenting2019,
+  title = {Interaction Trees: Representing Recursive and Impure Programs in {{Coq}}},
+  shorttitle = {Interaction Trees},
+  author = {Xia, Li-yao and Zakowski, Yannick and He, Paul and Hur, Chung-Kil and Malecha, Gregory and Pierce, Benjamin C. and Zdancewic, Steve},
+  date = {2019-12-20},
+  journaltitle = {Library presented in the paper: Interaction Trees},
+  shortjournal = {Proc. ACM Program. Lang.},
+  volume = {4},
+  pages = {51:1--51:32},
+  doi = {10.1145/3371119},
+  url = {https://dl.acm.org/doi/10.1145/3371119},
+  urldate = {2025-02-17},
+  abstract = {Interaction trees (ITrees) are a general-purpose data structure for representing the behaviors of recursive programs that interact with their environments. A coinductive variant of “free monads,” ITrees are built out of uninterpreted events and their continuations. They support compositional construction of interpreters from event handlers, which give meaning to events by defining their semantics as monadic actions. ITrees are expressive enough to represent impure and potentially nonterminating, mutually recursive computations, while admitting a rich equational theory of equivalence up to weak bisimulation. In contrast to other approaches such as relationally specified operational semantics, ITrees are executable via code extraction, making them suitable for debugging, testing, and implementing software artifacts that are amenable to formal verification. We have implemented ITrees and their associated theory as a Coq library, mechanizing classic domain- and category-theoretic results about program semantics, iteration, monadic structures, and equational reasoning. Although the internals of the library rely heavily on coinductive proofs, the interface hides these details so that clients can use and reason about ITrees without explicit use of Coq’s coinduction tactics. To showcase the utility of our theory, we prove the termination-sensitive correctness of a compiler from a simple imperative source language to an assembly-like target whose meanings are given in an ITree-based denotational semantics. Unlike previous results using operational techniques, our bisimulation proof follows straightforwardly by structural induction and elementary rewriting via an equational theory of combinators for control-flow graphs.},
+  issue = {POPL},
+  file = {/home/mjs/Zotero/storage/SD64ZBRF/Xia et al. - 2019 - Interaction trees representing recursive and impure programs in Coq.pdf}
+}
+
+@inproceedings{yeVerifiedProtocolBuffer2019,
+  title = {A Verified Protocol Buffer Compiler},
+  booktitle = {Proceedings of the 8th {{ACM SIGPLAN International Conference}} on {{Certified Programs}} and {{Proofs}}},
+  author = {Ye, Qianchuan and Delaware, Benjamin},
+  date = {2019-01-14},
+  series = {{{CPP}} 2019},
+  pages = {222--233},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/3293880.3294105},
+  url = {https://dl.acm.org/doi/10.1145/3293880.3294105},
+  urldate = {2024-08-29},
+  abstract = {The code responsible for serializing and deserializing untrusted external data is a vital component of any software that communicates with the outside world, as any bugs in these components can compromise the entire system. This is particularly true for verified systems which rely on trusted code to process external data, as any defects in the parsing code can invalidate any formal proofs about the system. One way to reduce the trusted code base of these systems is to use interface generators like Protocol Buffer and ASN.1 to generate serializers and deserializers from data descriptors. Of course, these generators are not immune to bugs.  In this work, we formally verify a compiler for a realistic subset of the popular Protocol Buffer serialization format using the Coq proof assistant, proving once and for all the correctness of every generated serializer and deserializer. One of the challenges we had to overcome was the extreme flexibility of the Protocol Buffer format: the same source data can be encoded in an infinite number of ways, and the deserializer must faithfully recover the original source value from each. We have validated our verified system using the official conformance tests.},
+  isbn = {978-1-4503-6222-1},
+  file = {/home/mjs/Zotero/storage/KXZP6DHB/Ye and Delaware - 2019 - A verified protocol buffer compiler.pdf}
+}
+
+@inproceedings{zhangUnderstandingDetectingSoftware2021,
+  title = {Understanding and {{Detecting Software Upgrade Failures}} in {{Distributed Systems}}},
+  booktitle = {Proceedings of the {{ACM SIGOPS}} 28th {{Symposium}} on {{Operating Systems Principles}}},
+  author = {Zhang, Yongle and Yang, Junwen and Jin, Zhuqi and Sethi, Utsav and Rodrigues, Kirk and Lu, Shan and Yuan, Ding},
+  date = {2021-10-26},
+  series = {{{SOSP}} '21},
+  pages = {116--131},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/3477132.3483577},
+  url = {https://dl.acm.org/doi/10.1145/3477132.3483577},
+  urldate = {2024-10-30},
+  abstract = {Upgrade is one of the most disruptive yet unavoidable maintenance tasks that undermine the availability of distributed systems. Any failure during an upgrade is catastrophic, as it further extends the service disruption caused by the upgrade. The increasing adoption of continuous deployment further increases the frequency and burden of the upgrade task. In practice, upgrade failures have caused many of today's high-profile cloud outages. Unfortunately, there has been little understanding of their characteristics.This paper presents an in-depth study of 123 real-world upgrade failures that were previously reported by users in 8 widely used distributed systems, shedding lights on the severity, root causes, exposing conditions, and fix strategies of upgrade failures. Guided by our study, we have designed a testing framework DUPTester that revealed 20 previously unknown upgrade failures in 4 distributed systems, and applied a series of static checkers DUPChecker that discovered over 800 cross-version data-format incompatibilities that can lead to upgrade failures. DUPChecker has been requested by HBase developers to be integrated into their toolchain.},
+  isbn = {978-1-4503-8709-5},
+  file = {/home/mjs/Zotero/storage/TRAUXG9K/Zhang et al. - 2021 - Understanding and Detecting Software Upgrade Failures in Distributed Systems.pdf}
+}

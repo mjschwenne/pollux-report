@@ -24,12 +24,13 @@
                 inherit
                   (texlive)
                   scheme-medium
+                  biblatex
+                  biber
                   geometry
-                  newtx
-                  fontaxes
-                  xstring
-                  bigfoot
-                  microtype
+                  wrapfig
+                  multirow
+                  booktabs
+                  capt-of
                   titlesec
                   hyperref
                   amsmath

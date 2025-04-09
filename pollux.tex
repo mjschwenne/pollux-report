@@ -1,0 +1,290 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage{amsthm}
+\usepackage{nicematrix}
+\usepackage{mathpartir}
+\usepackage{parskip}
+\usepackage{float}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\usetikzlibrary{positioning,calc,snakes,automata,arrows.meta}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{listings}
+\usepackage[backend=biber,sorting=ynt]{biblatex}
+\addbibresource{pollux.bib}
+\author{Matt Schwennesen}
+\date{\today}
+\title{Pollux: Protobuf Compatibility Checking}
+\hypersetup{
+ pdfauthor={Matt Schwennesen},
+ pdftitle={Pollux},
+ pdfkeywords={},
+ pdfsubject={},
+ pdflang={English}
+}
+
+\lstdefinelanguage{proto}{
+  keywords={message,double,float,int32,int64,uint32,uint64,sint32,sint64,fixed32,fixed64,sfixed32,sfixed64,bool,string,bytes,oneof,enum}
+}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{pollux}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=pollux}
+
+\newcommand{\fstar}{F\(^\star\)}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+Software has become an integral and integrated part of everyday life, and with
+that comes a near constant stream of updates to various devices all around
+us. Unfortunately, software updates are a frequent source of issues
+\autocites{zhangUnderstandingDetectingSoftware2021}[][]{Gray1986WhyDC}, often
+making it into production environments before the necessary edge cases are
+triggered. We believe that techniques from formal verification can be applied
+here to ensure update compatibility, which is ultimately what my project aims to
+do. Unlike some previous work
+\autocites{ajmaniModularSoftwareUpgrades2006}[][]{reitblattAbstractionsNetworkUpdate2012},
+I aim to prove compatibility of software updates without imposing restrictions
+about how the update itself is performed.
+
+The most nebulous part of this goal is how to define ``compatible'', which I
+break down into two major categories; data compatibility and operational
+compatibility. Data compatibility aims to show that that the new version can
+correctly interpret persistent state left behind by the pervious version while
+operational compatibility reasons about behavior of invoking the same function
+or feature in both versions of the software. This project is currently working
+on data compatibility.
+
+Imagine that you're a developer for a distributed system using \texttt{protobuf}
+and \texttt{grpc} to communicate between nodes. A new version of
+\texttt{protobuf} just came out and added a syntax for maps to the
+protocol. When you used to need maps, you had to manually encode a list of
+key-value pairs but now you can write \texttt{map<string, int32>} in the
+\texttt{.proto} schema file. Is changing between these syntactic definitions a
+compatible update? From a high level, they both model the same mathematical map,
+which is the information the program is actually trying to communicate, so it
+should be possible to define a compatible update this way. The specific answer
+naturally depends on how the new \texttt{map} is encoded into binary, and in the
+case of \texttt{protobuf} a \texttt{map} is syntactic sugar for a list of
+key-value pairs so this is a valid update \footnote{There is slightly more to it
+	than that, regarding some \texttt{optional} tags which might not present in
+	the original definition but it is possible to define this update in a
+	compatible way}. While this example is considering a rolling update to a
+distributed system, the same question would apply to an application which writes
+the serialized blob to disk and reads it when the application starts up again.
+
+The notion of both types of maps encoding the same mathematical map leads us to
+the idea of abstract state. When we're programming, we don't often think about
+which bucket an element of a hashmap is in but rather we think at a higher
+level. It is possible to conceptualize this formally, were we have some abstract
+state and a concrete state which are linked with a predicate asserting that the
+abstract state is captured by the concrete state. This is the same relationship
+we see in proofs of functional correctness, were the specification of a function
+corresponds to the abstract state and the implementation to the concrete
+state. This relationship will serve as the theoretical backing to the project.
+
+More practically, consider an RPC or other serialization library such as
+Protobuf or Cap'n'Proto. Updates to RPC schema are an excellent place to start
+exploring notions of data compatibility since RPC schema are separated from the
+source code that operates on them, are highly structured serialized formats and
+are designed to allow the schema to evolve though updates. Tools already exist
+which can report on if two versions of a schema file are compatible, these tools
+operate using ad-hoc notions of compatibility asserting a specification or
+verifying the implementation. Using \fstar, I plan to verify a compatibility
+checker for one of these libraries before expanding the project to consider a
+wider range of data formats. It should also be possible to include some analysis
+of the source code operating on the state to prove more invasive updates, or
+even the proofs of verified pieces of software, although that is a goal for a
+longer timescale.
+
+\section{Abstract State Schema}
+
+In software verification, an implementation is always verified against some
+specification of correct behavior. This is implicitly part of
+\texttt{protobuf} too; when a message is serialized and transmitted over the
+network, the developer expects that the same structure can be recreated by the
+receiving program. Refactoring this intuition to be more directly applicable to
+the standard verification setup, one could argue that the binary wire blob
+serves as an ``implementation'' of the structure or object in the host
+language (be it \texttt{go}, \texttt{java}, \texttt{python} or any other
+language with \texttt{protobuf} bindings) which itself is generated by
+\texttt{protoc} and is an ``implementation'' of the proto schema defined in a
+\texttt{.proto} file. This stack defines the \texttt{.proto} file as the top
+level source of truth, but this can be modeled by the high level host language
+in most cases. From the prospective of an application developer, the host
+language representation is the most important, since this is where the schema
+structure interacts with other parts of the host application.
+
+The definition of a \texttt{proto} message can be modeled by an \fstar{} type,
+in a way similar to structures created by \texttt{protoc} for other host
+languages. This is not fully sufficient though, since the representation
+exposed by \texttt{protoc} isn't enough to fully reason about compatibility.
+
+\subsection{\fstar{} Proto Representation}
+
+Some parts of the translation from a \texttt{proto} message
+\autocite{LanguageGuideProto} into \fstar{} is simple. For example, a 64 bit
+unsigned integer can be represented with a \texttt{UInt64} from the \fstar{}
+machine integer library. Likewise a message can be represented by a record
+\autocite{swamy2023proof}. Not everything cleanly generalizes
+though. Specifically, it is unclear to how represent some primitive types such
+as \texttt{float}, \texttt{double} or \texttt{string}.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ll}
+		\toprule
+		\texttt{proto} Feature & \fstar{} Representation   \\
+		\midrule
+		Integers               & Machine Integer Library   \\
+		\texttt{string}        & ???                       \\
+		\texttt{message}       & Record                    \\
+		\texttt{optional}      & \texttt{option}           \\
+		\texttt{repeated}      & \texttt{list}             \\
+		\texttt{map}           & ???                       \\
+		\texttt{bool}          & \texttt{bool}             \\
+		\texttt{bytes}         & \texttt{list UInt8}       \\
+		\texttt{enum}          & Inductive type            \\
+		\texttt{oneof}         & Inductive type (Sum type) \\
+		\texttt{option}        & ???                       \\
+		\bottomrule
+	\end{tabular}
+
+	\vspace{4mm}
+	\caption[]{\texttt{proto} language features and corresponding \fstar{} representations.}
+\end{table}
+
+Notice that there are several unknown representations in the table. Below is
+some commentary on these features:
+
+\begin{itemize}
+	\item \texttt{string}: While I don't see any references to strings in the early
+	      chapters of the \fstar{} book, my current assumption is that they exist
+	      somewhere \autocite{swamy2023proof}.
+	\item \texttt{map}: As far as I can tell, \fstar{} doesn't have maps, however
+	      this \fstar{} development doesn't \emph{need} maps beyond a way to serialize
+	      and de-serialize them. We should be able to develop a parametric
+	      \texttt{map} definition as a list of tuples, just like how protobuf would
+	      serialize them.
+	\item \texttt{option}: This isn't an optional value, but rather top level
+	      options used to set things like the \texttt{java} package. At the moment,
+	      I'm not sure if or how changing values can impact protobuf compatibility.
+\end{itemize}
+
+While this would provide a framework for building \fstar{} bindings for
+protobuf, a richer representation for a protobuf schema for checking
+compatibility at the wire level.
+
+\subsection{Compatibility Checking with \fstar{} Types}
+
+When a protobuf message is encoding, field names are stripped out in favor of
+field numbers or field tags, which are manually defined in the protobuf
+schema. Consider the two \texttt{proto} snippets below:
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[bt]{0.4\textwidth}
+		\begin{lstlisting}[language=proto]
+message Foo {
+    int32 bar = 1;
+}\end{lstlisting}
+	\end{minipage}
+	\hspace{1cm}
+	\begin{minipage}[bt]{0.4\textwidth}
+		\begin{lstlisting}[language=proto]
+message Foo {
+    int32 bar = 2;
+}\end{lstlisting}
+	\end{minipage}
+
+	\caption[]{Example showing the importance of including proto field numbers in
+		compatibility checking.}
+\end{figure}
+
+Any invocation of \texttt{protoc} will generate exactly the same
+application-facing code, even though a message generated using the left proto
+file will be parsed to an empty message by the right proto file.
+
+At the moment, I'm not sure of the exact way to represent the field tag in the
+\fstar{} type. There are probably multiple ways to do this, such as making
+everything a record or tuple with an integer or placing the fields into some
+generic wrapper which includes the field tag. This feels monadic, but I'm not
+sure about the details right now.
+
+\section{Protobuf Compatibility Questions}
+
+As the \fstar{} development moves forward, it is beneficial to have a minimal
+working example of a non-trivial compatibility question for protocol
+buffers. There are several clearly trivial questions, like updating a
+\texttt{int32} to an \texttt{int64} using the variable width integer encoding.
+
+After thinking about this for a while (very scientific), this was the simplest
+example that I wasn't immediately sure of the outcome:
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[bt]{0.4\textwidth}
+		\begin{lstlisting}[language=proto]
+message Foo {
+    string bar = 1;
+}\end{lstlisting}
+	\end{minipage}
+	\hspace{1cm}
+	\begin{minipage}[bt]{0.4\textwidth}
+		\begin{lstlisting}[language=proto]
+message Bar {
+    string baz = 1;
+}
+
+message Foo {
+    Bar bar = 1;
+}\end{lstlisting}
+	\end{minipage}
+
+	\caption[]{A compatibility question.}
+\end{figure}
+
+\printbibliography{}
+\end{document}
+
+% Local Variables:
+% citar-bibliography: ("./pollux.bib")
+% jinx-local-words: "proto protobuf protoc"
+% End:
