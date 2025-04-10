@@ -174,13 +174,13 @@ as \texttt{float}, \texttt{double} or \texttt{string}.
 		\texttt{proto} Feature & \fstar{} Representation   \\
 		\midrule
 		Integers               & Machine Integer Library   \\
-		\texttt{string}        & ???                       \\
+		\texttt{string}        & \texttt{string}           \\
 		\texttt{message}       & Record                    \\
 		\texttt{optional}      & \texttt{option}           \\
 		\texttt{repeated}      & \texttt{list}             \\
 		\texttt{map}           & ???                       \\
 		\texttt{bool}          & \texttt{bool}             \\
-		\texttt{bytes}         & \texttt{list UInt8}       \\
+		\texttt{bytes}         & \texttt{Seq.seq UInt8.t}  \\
 		\texttt{enum}          & Inductive type            \\
 		\texttt{oneof}         & Inductive type (Sum type) \\
 		\texttt{option}        & ???                       \\
@@ -195,9 +195,6 @@ Notice that there are several unknown representations in the table. Below is
 some commentary on these features:
 
 \begin{itemize}
-	\item \texttt{string}: While I don't see any references to strings in the early
-	      chapters of the \fstar{} book, my current assumption is that they exist
-	      somewhere \autocite{swamy2023proof}.
 	\item \texttt{map}: As far as I can tell, \fstar{} doesn't have maps, however
 	      this \fstar{} development doesn't \emph{need} maps beyond a way to serialize
 	      and de-serialize them. We should be able to develop a parametric
@@ -207,6 +204,9 @@ some commentary on these features:
 	      options used to set things like the \texttt{java} package. At the moment,
 	      I'm not sure if or how changing values can impact protobuf compatibility.
 \end{itemize}
+
+A good completeness test might be encoding \texttt{descriptor.proto}, the proto
+file which can encode other protobuf schemas.
 
 While this would provide a framework for building \fstar{} bindings for
 protobuf, a richer representation for a protobuf schema for checking
@@ -262,13 +262,6 @@ example that I wasn't immediately sure of the outcome:
 	\centering
 	\begin{minipage}[bt]{0.4\textwidth}
 		\begin{lstlisting}[language=proto]
-message Foo {
-    string bar = 1;
-}\end{lstlisting}
-	\end{minipage}
-	\hspace{1cm}
-	\begin{minipage}[bt]{0.4\textwidth}
-		\begin{lstlisting}[language=proto]
 message Bar {
     string baz = 1;
 }
@@ -277,9 +270,20 @@ message Foo {
     Bar bar = 1;
 }\end{lstlisting}
 	\end{minipage}
+	\hspace{1cm}
+	\begin{minipage}[bt]{0.4\textwidth}
+		\begin{lstlisting}[language=proto]
+message Foo {
+    string bar = 1;
+}\end{lstlisting}
+	\end{minipage}
 
 	\caption[]{A compatibility question.}
 \end{figure}
+
+On second thought, the data is correctly exposed in the string on the right but
+there will be several junk bytes at the beginning that the application has to
+trim. As a definitional question, should this be considered compatible?
 
 \printbibliography{}
 \end{document}
