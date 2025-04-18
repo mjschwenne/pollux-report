@@ -22,6 +22,7 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{listings}
+\usepackage{stmaryrd}
 \usepackage[backend=biber,sorting=ynt]{biblatex}
 \addbibresource{pollux.bib}
 \author{Matt Schwennesen}
@@ -157,7 +158,7 @@ in a way similar to structures created by \texttt{protoc} for other host
 languages. This is not fully sufficient though, since the representation
 exposed by \texttt{protoc} isn't enough to fully reason about compatibility.
 
-\subsection{\fstar{} Proto Representation}
+\subsection{\fstar{} Proto Struct Representation}
 
 Some parts of the translation from a \texttt{proto} message
 \autocite{LanguageGuideProto} into \fstar{} is simple. For example, a 64 bit
@@ -206,7 +207,7 @@ some commentary on these features:
 \end{itemize}
 
 A good completeness test might be encoding \texttt{descriptor.proto}, the proto
-file which can encode other protobuf schemas.
+file which can encode other protobuf schema.
 
 While this would provide a framework for building \fstar{} bindings for
 protobuf, a richer representation for a protobuf schema for checking
@@ -242,11 +243,20 @@ Any invocation of \texttt{protoc} will generate exactly the same
 application-facing code, even though a message generated using the left proto
 file will be parsed to an empty message by the right proto file.
 
-At the moment, I'm not sure of the exact way to represent the field tag in the
-\fstar{} type. There are probably multiple ways to do this, such as making
-everything a record or tuple with an integer or placing the fields into some
-generic wrapper which includes the field tag. This feels monadic, but I'm not
-sure about the details right now.
+This suggests that a more descriptive type is required. Rather than model the
+struct that would be output by \texttt{protoc}, the source type for Pollux
+should target the descriptor, as represented in the \texttt{.proto} file. Then,
+in a manner similar to the \texttt{parse} function in Everparse, develop
+something like this:
+
+\begin{align*}
+	\mathtt{Desc}               & : Type                                                                 \\
+	\mathtt{Struct}             & : Type \quad \text{Struct corresponding to descriptor}                 \\
+	\llbracket \cdot \rrbracket & : \mathtt{Desc} \rightarrow \mathtt{Struct}                            \\
+	parse                       & : \mathtt{Desc} \rightarrow \mathtt{Bytes} \rightarrow option\
+	\llbracket d \rrbracket                                                                              \\
+	serialize                   & : \mathtt{Desc} \rightarrow \mathtt{Struct} \rightarrow \mathtt{Bytes}
+\end{align*}
 
 \section{Protobuf Compatibility Questions}
 
@@ -291,5 +301,5 @@ trim. As a definitional question, should this be considered compatible?
 % Local Variables:
 % citar-bibliography: ("./pollux.bib")
 % TeX-command-default: "Make"
-% jinx-local-words: "proto protobuf protoc"
+% jinx-local-words: "Everparse proto protobuf protoc"
 % End:
