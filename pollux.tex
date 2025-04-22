@@ -9,6 +9,7 @@
 \usepackage[normalem]{ulem}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{amsthm}
 \usepackage{capt-of}
 \usepackage{hyperref}
 \usepackage{amsthm}
@@ -66,7 +67,9 @@
 
 \newcommand{\fstar}{F\(^\star\)}
 
-\newtheorem{definition}{Definition}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
 
 \begin{document}
 
@@ -106,7 +109,7 @@ which is the information the program is actually trying to communicate, so it
 should be possible to define a compatible update this way. The specific answer
 naturally depends on how the new \texttt{map} is encoded into binary, and in the
 case of \texttt{protobuf} a \texttt{map} is syntactic sugar for a list of
-key-value pairs so this is a valid update \footnote{There is slightly more to it
+key-value pairs so this is a valid update\footnote{There is slightly more to it
 	than that, regarding some \texttt{optional} tags which might not present in
 	the original definition but it is possible to define this update in a
 	compatible way}. While this example is considering a rolling update to a
