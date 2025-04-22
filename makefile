@@ -14,37 +14,16 @@ ps : $(ALL_PS)
 
 
 
-%.pdf: aux/% tmp/% %.tex
-	latexmk -lualatex $*.tex > tmp/$*/out || (less +G tmp/$*/out && exit 1)
-# compile using LuaLaTeX
-# redirects the shell output of latexmk to tmp
-# if latexmk were to fail, show the tail of said output for debugging purposes
-	mv `ls $*.* | grep -v '\.tex\|\.pdf\|\.dvi\|\.ps\|\.bib'` aux/$*
+%.pdf: %.tex
+	latexmk -lualatex $*.tex
 
-%.dvi : aux/% tmp/% %.tex
-	latexmk -dvi $*.tex > tmp/$*/out || (less +G tmp/$*/out && exit 1)
-	mv `ls $*.* | grep -v '\.tex\|\.pdf\|\.dvi\|\.ps\|\.bib'` aux/$*
+%.dvi : %.tex
+	latexmk -dvi $*.tex 
 
-%.ps : aux/% tmp/% %.tex
-	latexmk -ps $*.tex > tmp/$*/out || (less +G tmp/$*/out && exit 1)
-	mv `ls $*.* | grep -v '\.tex\|\.pdf\|\.dvi\|\.ps\|\.bib'` aux/$*
-
-tmp :
-	mkdir -p tmp
-
-aux :
-	mkdir -p aux
-
-tmp/%: tmp
-	mkdir -p tmp/$*
-
-aux/%: aux
-	mkdir -p aux/$*
-
+%.ps : %.tex
+	latexmk -ps $*.tex
 
 clean:
-	rm -rf aux
-	rm -rf tmp
 	latexmk -c
 # cleans everything but the .tex and .pdf (or eventually .dvi or .ps)
 
@@ -54,10 +33,6 @@ mrproper: clean
 
 clean_% :
 	latexmk -c $*.tex
-	rm -rf aux/$*
-	rm -rf tmp/$*
-	-rm -df aux
-	-rm -df tmp
 
 mrproper_% : clean_%
 	rm -rf $*.pdf
