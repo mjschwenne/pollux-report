@@ -354,7 +354,8 @@ encoding type of a message is an ordered list of encoding fields.
 \begin{definition}[Field Compatibility]
 	For fields $f_1 = (id_1, tag_1, v_1)$ and $f_2 = (id_2, tag_2, v_2)$, $f_1$
 	and $f_2$ are compatible with respect to a field descriptor $d_1$ and updated
-	field descriptor $d_2$ if $id_1 = id_2$ and $serialize_{d_1}\ f_1 = bs$,
+	field descriptor $d_2$ if $id_1 = id_2$ and for all values $v_1$,
+	$serialize_{d_1}\ f_1 = bs$ and there exists a $v_2$ such that
 	$parse_{d_2}\ bs = v_2$ and $v_1 \sim v_2$ according to some relation $\sim$.
 \end{definition}
 
