@@ -133,12 +133,204 @@ source code that operates on them, are highly structured serialized formats and
 are designed to allow the schema to evolve though updates. Tools already exist
 which can report on if two versions of a schema file are compatible, these tools
 operate using ad-hoc notions of compatibility asserting a specification or
-verifying the implementation. Using \fstar, I plan to verify a compatibility
+verifying the implementation. Using \fstar{}, I plan to verify a compatibility
 checker for one of these libraries before expanding the project to consider a
 wider range of data formats. It should also be possible to include some analysis
 of the source code operating on the state to prove more invasive updates, or
 even the proofs of verified pieces of software, although that is a goal for a
 longer timescale.
+
+\section{Protobuf Primer}
+
+Protobuf, or protocol buffers, is a message description language and
+serialization protocol developed by Google. It is similar to other descriptive
+data formats like ASN1, and is commonly used as part of the gRPC remote
+procedure call system. Protobuf and gRPC are one of the most popular
+serialization formats.
+
+\subsection{The \texttt{proto} Language}
+
+A high-level protobuf message description is written in a \texttt{.proto} file
+in the \texttt{proto} language. Each message is described by a \emph{message
+	descriptor} which declares each field and its corresponding type.
+
+\begin{figure}[H]
+	\begin{lstlisting}[language=proto]
+syntax = "proto3";
+
+message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 results_per_page = 3;
+}\end{lstlisting}
+
+	\caption{Example protobuf message description from the protobuf documentation~\cite{LanguageGuideProto}.}
+	\label{fig:proto-ex}
+\end{figure}
+
+In figure~\ref{fig:proto-ex}, a message called \texttt{SearchRequest} is
+declared. This message contains three fields, the query, page number to display
+and number of results per page. Each field is assigned a \emph{field number},
+which is used in the serialized version of the message. Each field number must
+be unique, as they are used to identify the corresponding binary blob in the
+encoded message. A \texttt{.proto} file can define multiple messages, and
+messages can be embedded in another by using the name of that message as the
+type of a field in the other message.
+
+Each field is defined with a type, with the primitive types summarized in
+table~\ref{tbl:proto-prim}.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{cl}
+		\toprule
+		Type              & Notes                                                    \\
+		\midrule
+		\texttt{double}   & Standard 64 bit double-precision floating point
+		number.                                                                      \\
+		\texttt{float}    & Standard 32 bit floating point number.                   \\
+		\texttt{int32}    & Variable-length signed 32 bit integer.                   \\
+		\texttt{int64}    & Variable-length signed 64 bit integer.                   \\
+		\texttt{uint32}   & Variable-length unsigned 32 bit integer.                 \\
+		\texttt{uint64}   & Variable-length unsigned 64 bit integer.                 \\
+		\texttt{sint32}   & Variable-length 32 bit integer with more
+		efficient encoding for negative numbers.                                     \\
+		\texttt{sint64}   & Variable-length 64 bit integer with more efficient
+		encoding for negative numbers.                                               \\
+		\texttt{fixed32}  & Four byte integer, more efficient than \texttt{uint32}
+		for values greater than $2^{38}$.                                            \\
+		\texttt{fixed64}  & Eight byte integer, more efficient than \texttt{uint64}
+		for values greater than $2^{56}$.                                            \\
+		\texttt{sfixed32} & Four byte signed integer.                                \\
+		\texttt{sfixed64} & Eight byte signed integer.                               \\
+		\texttt{bool}     & Boolean, encoded in one byte.                            \\
+		\texttt{string}   & A string of UFT-8 or 7-bit ASCII characters shorter than
+		$2^{32}$ bytes.                                                              \\
+		\texttt{bytes}    & An arbitrary sequence of less than $2^{32}$ bytes.       \\
+		\bottomrule
+	\end{tabular}
+	\caption{Summary of the protobuf scalar values.}
+	\label{tbl:proto-prim}
+\end{table}
+
+Any protobuf field can marked as \texttt{optional} or \texttt{repeated}. An
+\texttt{optional} field can be either set to a value or omitted from the
+message. Similarly, a \texttt{repeated} field can be repeated in the message
+zero or more times, functioning as a list now. A field without a cardinality
+modifier is known as an implicit field and can also be omitted from a message,
+just like an \texttt{optional} field. During de-serialization, a type-specific
+default value will be used (this is consistent with accessing the value of an
+unset \texttt{optional} field). The only difference between an implicit field
+and \texttt{optional} field is that the optional field can differentiate between
+an unset field and field set to the default value by providing a method which
+reports if the \texttt{optional} field is set.
+
+Since the protobuf language is designed to be both forward and backwards
+compatible, it is possible to remove or add fields. When removing fields, it is
+encouraged to reserve the field number to prevent reuse of the field in a
+future. It is also possible to reserved field names, which isn't important for
+the protobuf binary encoding format, this is important if you're using the JSON
+encoding of a protobuf message.
+
+\begin{figure}[H]
+	\begin{lstlisting}[language=proto]
+syntax = "proto3";
+
+message Foo {
+  reserved 2, 15, 9 to 11;
+  reserved "foo", "bar";
+}\end{lstlisting}
+
+	\caption{Example protobuf message using reserved fields~\cite{LanguageGuideProto}.}
+	\label{fig:proto-reserved}
+\end{figure}
+
+Protobuf also supports enumerations, for when a field may only take a finite
+number of values. Due to how default values work in protobuf, enums are required
+to have a value defined with a value zero and it should have either
+``UNSPECIFIED'' or ``UNKNOWN'' since that will be the default value.
+
+\begin{figure}[H]
+	\begin{lstlisting}[language=proto]
+syntax = "proto3";
+
+enum {
+  CORPUS_UNSPECIFIED = 0;
+  CORPUS_UNIVERSAL = 1;
+  CORPUS_WEB = 2;
+  CORPUS_IMAGES = 3;
+  CORPUS_LOCAL = 4;
+  CORPUS_NEWS = 5;
+  CORPUS_PRODUCTS = 6;
+  CORPUS_VIDEO = 7;
+}
+
+message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 results_per_page = 3;
+  Corpus corpus = 4;
+}\end{lstlisting}
+
+	\caption{Example protobuf message using an enum~\cite{LanguageGuideProto}.}
+	\label{fig:proto-enum}
+\end{figure}
+
+There are two other features which need to be modeled, \texttt{map} and
+\texttt{oneof}. Maps can be thought of like a standard map in \texttt{go} or a
+\texttt{dict} in \texttt{python}. From a serialization perspective, this is an
+unordered map that could be modeled as a list of key-value pairs. A \texttt{map}
+field cannot be \texttt{repeated}, and repeated keys have the last occurrence
+win, as is standard with protobuf (see Section~\ref{sec:proto-enc}).
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[bt]{0.43\textwidth}
+		\begin{lstlisting}[language=proto]
+message Foo {
+  map<int32, string> map_field = 1;
+}\end{lstlisting}
+	\end{minipage}
+	\hspace{0.5cm}
+	\begin{minipage}[bt]{0.48\textwidth}
+		\begin{lstlisting}[language=proto]
+message MapFieldEntry {
+  int32 key = 1;
+  string value = 2;
+}
+
+message Foo {
+  repeated MapFieldEntry map_field = 1;
+}\end{lstlisting}
+	\end{minipage}
+
+	\caption{Example of \texttt{map} syntax and the corresponding
+		wire-equivalent syntax~\cite{LanguageGuideProto}.}
+	\label{fig:proto-map}
+\end{figure}
+
+The final important feature of the proto language is a \texttt{oneof} field,
+which operates like a union in \texttt{C}. Setting any member of the
+\texttt{oneof} will clear any previously set field. A \texttt{oneof} field
+cannot contain a \texttt{repeated} field or a \texttt{map} and the
+\texttt{oneof} field itself cannot be \texttt{repeated}.
+
+\begin{figure}[H]
+	\begin{lstlisting}[language=proto]
+syntax = "proto3";
+
+message User {
+  oneof user_id {
+    string email = 4;
+    int32 phone = 2;
+  }
+}\end{lstlisting}
+
+	\caption{Example protobuf message using an enum~\cite{LanguageGuideProto}.}
+	\label{fig:proto-enum}
+\end{figure}
+
+\subsection{The Protobuf Encoding}\label{sec:proto-enc}
 
 \section{Abstract State Schema}
 
