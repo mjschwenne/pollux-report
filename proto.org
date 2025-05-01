@@ -1,0 +1,41 @@
+#+TITLE: Real-World Protobuf Usage and Updates
+#+AUTHOR: Matt Schwennesen
+#+DATE: [2025-05-01 Thu]
+
+While I have designed a sequence of potential updates to a protobuf file, we
+were interested in finding what types of updates real applications using
+protobufs. Below is a collection of applications, and some notes on each of
+them.
+
+** Methodology
+
+I used the GitHub ~protobuf~ repository tag, sorted by decreasing number of GitHub
+stars to identify hopefully somewhat widely used repositories which use
+protobufs. I avoided repositories claiming to be a new RPC framework (why are
+there so many of these?) or a tool for analyzing protobuf in order to find
+repositories which are just protobuf consumers.
+
+** Repositories
+
+- [[https://github.com/SteamDatabase/SteamTracking][SteamDatabase]] (and a separate [[https://github.com/SteamDatabase/Protobufs][protos]] repo which seems to contain a lot of the
+  same information) The backend for [[https://steamdb.info/][steamdb]] which apparently makes extensive use
+  of protobufs.
+- [[https://github.com/dchapyshev/aspia][aspia]]: A remote desktop and file transfer tool using protobuf internally.
+- [[https://github.com/Ultimaker/CuraEngine][CuraEngine]]: The backend to Cura, a 3D printing and slicing software. 
+- [[https://github.com/docarray/docarray][docarray]]: A python library for representing, transmitting and storing
+  multimodal data, including transmitting data via protobuf. 
+- [[https://github.com/pantsbuild/pants/tree/main][pants]]: A build system for mono-repos written in multiple languages. 
+- [[https://github.com/Furtif/POGOProtos][PokemonGo Protos]]: Apparently you can interact with PokemonGo using protobufs?
+  The interesting thing about this repo is that each proto file is tagged with a
+  version already, so we don't have to crawl through git history in order to get
+  past versions of the proto file.
+- [[https://github.com/shaoruu/mine.js][mine.js]]: A in-browser minecraft clone.
+
+** Other Cool Tools
+
+During this search, I did come across a few tools for working with protobufs
+which seemed interesting. Those are listed here.
+
+- [[https://github.com/seamia/protodot/tree/master][protodot]]: Builds a ~.dot~ file from a ~.proto~ file for visualization purposes.
+- [[https://buf.build/docs/protovalidate/][protovalidate]]: Another tool by buf, which seems to define... refinement types
+  for protobuf? And generates ~protoc~ code which enforces them.
