@@ -332,6 +332,25 @@ message User {
 
 \subsection{The Protobuf Encoding}\label{sec:proto-enc}
 
+Complimenting the Protobuf schema language is the protobuf encoding format. All
+valid protobuf messages written the the proto language will be eventually
+encoding into a binary blob in respecting this encoding.
+
+\subsubsection{Variable-Length Integers}
+
+The heart of the protobuf encoding is the variable-length integer encoding,
+which represents a 32 or 64 bit integer in between one and ten bytes. The
+encoding format itself is relatively simple. The bits of the integer to be
+encoded are grouped into bundles of seven. The bundles are ordered in little
+endian order with the first bit of each byte set to one if the next byte is also
+part of the same integer.
+
+For example, consider the number 163, or 10100011 in binary. Splitting these
+into bundles of seven bits produces ``0000001'' and ``0100011''. These are
+reordered into little endian order, ``0000001'' then ``0100011''. Finally set
+the continuation bit on the first byte of the encoding and concatenate them
+together to get ``10000010100011''.
+
 \section{Abstract State Schema}
 
 In software verification, an implementation is always verified against some
