@@ -351,6 +351,71 @@ reordered into little endian order, ``0000001'' then ``0100011''. Finally set
 the continuation bit on the first byte of the encoding and concatenate them
 together to get ``10000010100011''.
 
+\subsubsection{Field Identifiers}
+
+A message is serialized as a sequence of fields, in any order. Each field is
+encoded as a \emph{tag-length value} structure, although not ever field has a
+dedicated length in the encoding. The tag consists of the field number as
+defined in the \texttt{proto} file, encoded in the variable length integer
+encoding discussed above. However, the tag isn't just the field number, it also
+includes information on the type of payload as detailed in
+Table~\ref{tab:tags}. The wire type is stored in the last three bits of the
+field number varint, effectively encoded as \texttt{(field\_number << 3) |
+  wire\_type}. 
+
+\subsubsection{Length Delimited Fields}
+
+Nested messages, string and bytes are encoded with their payload length in bytes
+as a varint just after the tag. Despite being variable-length, varint fields
+aren't encoded with an explicit length since checking the length of the varint
+doesn't provide significance benefits when the maximum length varint is only 10
+bytes. Lengths are encoded in bytes so that deserializers can skip large unknown
+fields efficiently and know when exactly the unknown field ends.
+
+All variable length fields except varints are prefixed with a length and then
+the rest of the payload, with nested messages simply beginning with the tag for
+their first field and continuing from there. Since nested messages include the
+complete field encodings, it is important for the parser to be able to skip an
+unknown field exactly rather than incorrectly thinking a nested unknown field is
+setting field in the parent message.
+
+\subsubsection{Signed Integers}
+
+The standard varint encoding is only for unsigned integers. Signed integers can
+be encoded in both \texttt{int32} and \texttt{int64} or \texttt{sint32} and
+\texttt{sint64} field types. The \texttt{intN} types uses standard two's
+complement to encode negative integers. However, since a negative two's
+compliment integer always has the sign bit set, any negative number will be
+encoded in a maximum length varint 10 bytes long.
+
+On the other hand, the \texttt{sintN} types use a ``ZigZag'' encoding to more
+efficiently represent smaller negative numbers~\cite{Encoding}. In this
+encoding, a positive value $p$ is encoded as $2 \times p$ while a negative value $n$
+is encoded as $2 \times |n| - 1$. Using bit-shift operators, this would be
+\verb|(n << 1) ^ (n >> 31)| or the naturally extended 64-bit version.
+
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{cc}
+    \toprule
+    Signed Original & Zig-Zag Encoding \\
+    \midrule
+    0 & 0 \\
+    -1 & 1 \\
+    1 & 2 \\
+    -2 & 3 \\
+    \vdots & \vdots \\
+    \bottomrule
+  \end{tabular}
+\caption{Some zig zag encoded integers}
+\label{tab:zigzag}
+\end{table}
+
+While the zig-zag encoding does save space for smaller negative values in
+particular, it does increase the amount of space required to encode large
+positive values, which is why it isn't the standard encoding for signed
+integers. 
+
 \section{Abstract State Schema}
 
 In software verification, an implementation is always verified against some
@@ -546,6 +611,7 @@ the tag is from the table below.
 	\caption[]{Description of \texttt{proto} tag values. Note that values 3 and
 		4 correspond to \texttt{SGROUP} and \texttt{EGROUP}, tags used in protobuf
 		version 2 and deprecated in protobuf 3 \autocite{Encoding}.}
+    \label{tab:tags}
 \end{table}
 
 It has finally become time for a sequence of definitions. A protobuf message
