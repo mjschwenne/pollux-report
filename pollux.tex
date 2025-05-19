@@ -327,7 +327,7 @@ message User {
 }\end{lstlisting}
 
 	\caption{Example protobuf message using an enum~\cite{LanguageGuideProto}.}
-	\label{fig:proto-enum}
+	\label{fig:proto-enum2}
 \end{figure}
 
 \subsection{The Protobuf Encoding}\label{sec:proto-enc}
@@ -643,6 +643,89 @@ different bit widths (i.e. 32-bit to 64-bit integers).
 	A protobuf message descriptor $d_2$ is a compatible update to $d_1$ if every
 	field in $d_1$ has a compatible field in $d_2$.
 \end{definition}
+
+\section{Compatibility Relation}
+
+The compatibility relation $\sim$ is defined as below. It is very similar to a
+subtyping relation over tuples $v = (n, \tau, m)$ where $n$ is a field number, $\tau$
+a type at the proto level and $m$ a field modifier, one of \texttt{IMPLICIT},
+\texttt{OPTIONAL} or \texttt{REPEATED}. 
+
+\subsection{Basic Rules}
+
+A compatibility relation is both reflexive and transitive, although it is
+neither symmetric nor anti-symmetric.  
+
+\begin{mathpar}
+   \infer*[Right=Refl]{ }{v \sim{} v}
+
+   \infer*[Right=Trans]{v_1 \sim v_2 \\ v_2 \sim v_3}{v_1 \sim v_3}
+\end{mathpar}
+
+\subsection{Modifier Rules}
+
+We should be able to change field modifiers using these rules.
+
+\begin{mathpar}
+    \infer*[Right=Add-Opt]{ }{(id, \tau, \mathtt{IMPLICIT}) \sim (id, \tau,
+      \mathtt{OPTIONAL})}
+
+    {\color{red}
+    \infer*[Right=Rm-Opt]{ }{(id, \tau, \mathtt{OPTIONAL}) \sim (id, \tau,
+      \mathtt{IMPLICIT})}}
+
+    \infer*[Right=Add-Rep]{ }{(id, \tau, \mathtt{IMPLICIT}) \sim (id, \tau,
+      \mathtt{REPEATED})} 
+
+\end{mathpar}
+
+\subsection{String \& Byte Rules}
+
+We can freely convert been the \texttt{string} and \texttt{bytes} types.
+
+\begin{mathpar}
+  \infer*[Right=Str-Byte]{ }{(id, \mathtt{string}, m) \sim (id, \mathtt{bytes}, m)} 
+
+  \infer*[Right=Byte-Str]{ }{(id, \mathtt{bytes}, m) \sim (id, \mathtt{string}, m)} 
+\end{mathpar}
+
+\subsection{Integer Rules}
+
+\begin{mathpar}
+  \infer*[Right=Width-Promote-I]{ }{(id, \mathtt{int32}, m) \sim (id,
+    \mathtt{int64}, m)}
+
+  \infer*[Right=Width-Promote-U]{ }{(id, \mathtt{uint32}, m) \sim (id,
+    \mathtt{uint64}, m)}
+
+  \infer*[Right=Width-Promote-S]{ }{(id, \mathtt{sint32}, m) \sim (id,
+    \mathtt{sint64}, m)}
+
+  \\
+  \infer*[Right=Bool-Promote]{t \in \{\texttt{int32}, \texttt{int64},
+    \texttt{uint32}, \texttt{uint64}, \texttt{sint32}, \texttt{sint64}\}}{(id,
+    \texttt{bool}, m) \sim (id, t, m)}
+
+  {\color{red} \infer*[Right=Enum-Promote]{t \in \{\texttt{int32}, \texttt{int64},
+      \texttt{uint32}, \texttt{uint64}, \texttt{sint32}, \texttt{sint64}\}}{(id,
+      \mathtt{enum}, m) \sim (id, t, m)} }
+\end{mathpar}
+
+\subsection{Message Rules}
+
+Messages become an interesting one since we depart from the tuple notation for a
+bit.
+
+\begin{mathpar}
+  \infer*[Right=Msg-Depth]{v_1 \sim v_1' \\ v_2 \sim v_2' \\ \cdots \\ v_n \sim v_n'}{\{v_1,
+    \dots, v_n\} \sim \{v_1', \dots, v_n'\}}
+  \\
+  \infer*[Right=Msg-Width]{n \le m}{\{v_1, \dots, v_n\} \sim \{v_1, \dots, v_n,
+    \dots, v_m\}}
+
+  \infer*[Right=Msg-Field]{\mathtt{msg}_1 \sim \mathtt{msg}_2}{(id, \mathtt{msg}_1,
+    m) \sim (id, \mathtt{msg}_2, m)} 
+\end{mathpar}
 
 \printbibliography{}
 \end{document}
