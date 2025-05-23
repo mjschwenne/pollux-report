@@ -24,6 +24,7 @@ ps : $(ALL_PS)
 	latexmk -ps $*.tex
 
 clean:
+	rm pollux.pdf
 	latexmk -c
 # cleans everything but the .tex and .pdf (or eventually .dvi or .ps)
 

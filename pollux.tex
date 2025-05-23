@@ -8,6 +8,7 @@
 \usepackage{rotating}
 \usepackage[normalem]{ulem}
 \usepackage{amsmath}
+\usepackage{bbold}
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{capt-of}
@@ -65,11 +66,13 @@
 
 \lstset{style=pollux}
 
-\newcommand{\fstar}{F\(^\star\)}
-
-
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+
+\newcommand{\fstar}{F$^\star$}
+\renewcommand{\mod}{\;\%\;}
 
 \begin{document}
 
@@ -646,10 +649,12 @@ different bit widths (i.e. 32-bit to 64-bit integers).
 
 \section{Compatibility Relation}
 
-The compatibility relation $\sim$ is defined as below. It is very similar to a
-subtyping relation over tuples $v = (n, \tau, m)$ where $n$ is a field number, $\tau$
-a type at the proto level and $m$ a field modifier, one of \texttt{IMPLICIT},
-\texttt{OPTIONAL} or \texttt{REPEATED}. 
+The descriptor compatibility relation $\preceq$ is defined as below. It is inspired by
+a subtyping relation over tuples $d = (n, \tau, m, v)$ where $n$ is a field number,
+$\tau$ a type at the proto level, $m$ a field modifier (one of \texttt{IMPLICIT},
+\texttt{OPTIONAL} or \texttt{REPEATED}) and $v$ is a payload for the field.
+This relation is defined in terms of another relation $\prec$ defined on just values
+which allow for modification of the values during the deserialization process.
 
 \subsection{Basic Rules}
 
@@ -657,9 +662,11 @@ A compatibility relation is both reflexive and transitive, although it is
 neither symmetric nor anti-symmetric.  
 
 \begin{mathpar}
-   \infer*[Right=Refl]{ }{v \sim{} v}
+   \infer[Refl]{ }{(n, \tau, m, v) \preceq (n, \tau, m, v)}
 
-   \infer*[Right=Trans]{v_1 \sim v_2 \\ v_2 \sim v_3}{v_1 \sim v_3}
+   \infer[Trans]{(n_1, \tau_1, m_1, v_1) \preceq (n_2, \tau_2, m_2, n_3) \\ (n_2,
+     \tau_2, m_2, n_2) \preceq (n_3, \tau_3, m_3, v_3)}{(n_1, \tau_1, m_1, v_1) \preceq (n_3, \tau_3,
+     m_3, v_3)}
 \end{mathpar}
 
 \subsection{Modifier Rules}
@@ -667,65 +674,204 @@ neither symmetric nor anti-symmetric.
 We should be able to change field modifiers using these rules.
 
 \begin{mathpar}
-    \infer*[Right=Add-Opt]{ }{(id, \tau, \mathtt{IMPLICIT}) \sim (id, \tau,
-      \mathtt{OPTIONAL})}
+    \infer[Add-Opt]{ }{(id, \tau, \mathtt{IMPLICIT}, v) \sim (id, \tau,
+      \mathtt{OPTIONAL}, v)}
 
     {\color{red}
-    \infer*[Right=Rm-Opt]{ }{(id, \tau, \mathtt{OPTIONAL}) \sim (id, \tau,
-      \mathtt{IMPLICIT})}}
+    \infer[Rm-Opt]{ }{(id, \tau, \mathtt{OPTIONAL}, v) \sim (id, \tau,
+      \mathtt{IMPLICIT}, v)}}
 
-    \infer*[Right=Add-Rep]{ }{(id, \tau, \mathtt{IMPLICIT}) \sim (id, \tau,
-      \mathtt{REPEATED})} 
+    \infer[Add-Rep]{ }{(id, \tau, \mathtt{IMPLICIT}, v) \sim (id, \tau,
+      \mathtt{REPEATED}, v)} 
 
 \end{mathpar}
 
-\subsection{String \& Byte Rules}
+\subsection{Type Rules}
 
-We can freely convert been the \texttt{string} and \texttt{bytes} types.
-
-\begin{mathpar}
-  \infer*[Right=Str-Byte]{ }{(id, \mathtt{string}, m) \sim (id, \mathtt{bytes}, m)} 
-
-  \infer*[Right=Byte-Str]{ }{(id, \mathtt{bytes}, m) \sim (id, \mathtt{string}, m)} 
-\end{mathpar}
-
-\subsection{Integer Rules}
+Since the descriptor compatibility relation uses the value relation, it is
+possible to update the proto-level types of the descriptors to any other type
+related by $\prec$.
 
 \begin{mathpar}
-  \infer*[Right=Width-Promote-I]{ }{(id, \mathtt{int32}, m) \sim (id,
-    \mathtt{int64}, m)}
-
-  \infer*[Right=Width-Promote-U]{ }{(id, \mathtt{uint32}, m) \sim (id,
-    \mathtt{uint64}, m)}
-
-  \infer*[Right=Width-Promote-S]{ }{(id, \mathtt{sint32}, m) \sim (id,
-    \mathtt{sint64}, m)}
-
-  \\
-  \infer*[Right=Bool-Promote]{t \in \{\texttt{int32}, \texttt{int64},
-    \texttt{uint32}, \texttt{uint64}, \texttt{sint32}, \texttt{sint64}\}}{(id,
-    \texttt{bool}, m) \sim (id, t, m)}
-
-  {\color{red} \infer*[Right=Enum-Promote]{t \in \{\texttt{int32}, \texttt{int64},
-      \texttt{uint32}, \texttt{uint64}, \texttt{sint32}, \texttt{sint64}\}}{(id,
-      \mathtt{enum}, m) \sim (id, t, m)} }
+  \infer[Type-Chg]{v_1 : \tau_1 \prec v_2 : \tau_2}{(id, \tau_1, m, v_1) \preceq (id, \tau_2, m, v_2)}
 \end{mathpar}
 
 \subsection{Message Rules}
 
-Messages become an interesting one since we depart from the tuple notation for a
-bit.
+Messages are similar to records in \fstar{} or other functional languages and
+message compatibility can take the same two routes that record subtyping can:
+width compatibility and depth compatibility. In width compatibility updates, new
+fields are added to the message, making the updated version a strict superset of
+the original message. In depth compatibility updates, the number of fields
+remains the same, but other attributes of the field are updated compatible ways.
 
 \begin{mathpar}
-  \infer*[Right=Msg-Depth]{v_1 \sim v_1' \\ v_2 \sim v_2' \\ \cdots \\ v_n \sim v_n'}{\{v_1,
-    \dots, v_n\} \sim \{v_1', \dots, v_n'\}}
-  \\
-  \infer*[Right=Msg-Width]{n \le m}{\{v_1, \dots, v_n\} \sim \{v_1, \dots, v_n,
-    \dots, v_m\}}
+  \infer[Msg-Width]{n \le m}{\{d_1, \dots, d_n\} \preceq \{d_1, \dots, d_n,
+    \dots, d_m\}}
 
-  \infer*[Right=Msg-Field]{\mathtt{msg}_1 \sim \mathtt{msg}_2}{(id, \mathtt{msg}_1,
-    m) \sim (id, \mathtt{msg}_2, m)} 
+  \infer[Msg-Depth]{d_1 \preceq d_1' \\ \cdots \\ d_n \preceq d_n'}{\{d_1,
+    \dots, d_n\} \preceq \{d_1', \dots, d_n'\}}
+
+  \hspace{1cm}
+  \infer[Msg-Field]{\mathtt{msg}_1 \preceq \mathtt{msg}_2}{(id, \mathtt{msg}_1,
+    m, v) \preceq (id, \mathtt{msg}_2, m, v)} 
 \end{mathpar}
+
+\subsection{Enum Rules}
+
+The enum rules are similar to the message rules at least in the sense that enums
+can be updated to have new fields without issue. However, when considering
+removing fields from an enum definition, it is important to know if the enum is
+treated as open or closed~\cite{EnumBehavior}. By default, \texttt{proto3}
+treats all enums as open, so it should be possible to write a rule allowing for
+the deletion of an enum field. This naturally aligns with how \texttt{go}
+handles enums, since it doesn't support closed enums. Since protobuf enums don't
+contain extra information, no depth rules is allowed.
+
+\begin{mathpar}
+  \infer[Enum-Width]{n \le m}{\{id_1, \dots, id_n\} \preceq \{id_1, \dots, id_n,
+    \dots, id_m\}}
+
+  \infer[Enum-Field]{\mathtt{enum}_1 \preceq \mathtt{enum}_2}{(id, \mathtt{enum}_1,
+    m, v) \preceq (id, \mathtt{enum}_2, m, v)} 
+\end{mathpar}
+
+\subsection{Compatibility Theorem}
+
+The main field-level compatibility theorem is stated below.
+\\
+\begin{theorem}[Field Compatibility]
+  If $d_1 \preceq d_2$ then for all binary strings $bs$ such that
+  $\mathtt{parse}_{d_1}\ bs = \mathtt{Some}\ v_1$, $\mathtt{parse}_{d_2}\ bs =
+  \mathtt{Some}\ v_2$ and $v_1 \prec v_2$
+\end{theorem}
+
+\section{Value Relation}
+
+The value relation operates on values expressed at a specific type. This
+relation shows both what types can be changed in the \textsc{Type-Chg} rules of
+$\preceq$. 
+
+\subsection{String \& Byte Rules}
+
+It is possible to convert been the \texttt{string} and \texttt{bytes} types,
+although the host program may have to deal with control character bytes being
+present in the resulting string.
+
+\begin{mathpar}
+  \infer[Str-Byte]{ }{v : \mathtt{string} \prec v : \mathtt{bytes}}
+
+  \infer[Byte-Str]{ }{v : \mathtt{bytes} \prec v : \mathtt{string}}
+\end{mathpar}
+
+\subsection{Integer Rules}
+
+As a shorthand, statements like \texttt{uint[n]} represent a variable length
+integer encoding into $n$ bits. In order to result in valid protobuf types, $n \in
+\{32, 64\}$. The change width rules are designed to allow for both integer
+promotion and demotion while the rest of the rules express what happens when
+converting between integers using different encoding types for negative numbers.
+
+With regard to the \textsc{Int-Chg-W} rule, I was originally concerned about
+negative 32 bit numbers being encoded into 5 bytes for a varint encoding and
+then becoming positive if parsed into 64 bit integer, but protobuf handles this
+by writing all negative \texttt{int[n]} into a full 10 bytes. 
+
+It is also worth noting that the expression $v : \tau$ actually refers to a value
+of type $\llbracket \tau \rrbracket$ with a label of the type. All of the integer
+types have $\llbracket \cdot \rrbracket = \mathbb{Z}$, which allows for the free conversion
+between integer types. Finally, $\%$ refers to modulus using floored division,
+so $-1 \mod 2 = 1$. 
+
+\begin{mathpar}
+  \infer[Uint-Chg-W]{v_2 = v_1 \mod 2^m}{v_1 : \mathtt{uint[n]} \prec v_2 : \mathtt{uint[m]}}
+
+  \infer[Int-Chg-W]{v_2 = v_1 \mod 2^m}{v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{int[m]}}
+
+  \infer[Sint-Chg-W]{v_2 = v_1 \mod 2^m}{v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{sint[m]}}
+
+  \infer[Uint-Int]{v_2 = v_1 - 2^n \times \mathbb{1}[v_1 \ge 2^{n-1}]}{v_1 :
+    \mathtt{uint[n]} \prec v_2 : \mathtt{int[n]}}
+
+  \infer[Int-Uint]{v_2 = v_1 + 2^n \times \mathbb{1}[v_1 < 0]}{v_1 :
+    \mathtt{int[n]} \prec v_2 : \mathtt{uint[n]}} 
+
+  \infer[Uint-Sint]{v_2 = (-1)^{v_1} \times \left( \frac{v_1}{2} \right) - (v_1 \%
+    2)}{v_1 : \mathtt{uint[n]} \prec v_2 : \mathtt{sint[n]}} 
+
+  \infer[Sint-Uint]{v_2 = 2 \times |v_1| - \mathbb{1}[v_1 < 0]}{v_1 :
+    \mathtt{sint[n]} \prec v_2 : \mathtt{uint[n]}} 
+
+  \infer[Int-Sint]
+  {
+    v_2 = \left\{
+      {\begin{array}{l@{\quad:\quad}l}
+        (-1)^{v_1} \times \left( \frac{v_1}{2} \right) - (v_1 \mod 2) & \text{if } v_1 \ge 0 \\
+        (-1)^{v_1} \times (v_1 + 2^{n-1}) - (v_1 \mod 2) & \text{otherwise}
+      \end{array}}\right.
+  }
+  {v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{sint[n]}}
+
+  \infer[Sint-Int]
+  {
+    v_2 = \left\{
+      {\begin{array}{l@{\quad:\quad}l}
+        2 \times |v_1| - \mathbb{1}[v_1 < 0] & \text{if } -2^{n-2} \le v_1 < 2^{n-2} \\
+        |2 \times v_1 - 2^{n-1}| - 2^{n-1} - \mathbb{1}[s < 2^{n-2}] & \text{otherwise}
+      \end{array}}\right.
+  }
+  {v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{int[n]}}
+\end{mathpar}
+
+\subsection{Boolean Rules}
+
+\begin{mathpar}
+  \infer[Uint-Bool]
+  {
+    v_2 = \left\{
+      {\begin{array}{l@{\quad:\quad}l}
+        \mathtt{false} & \text{if } v_1 = 0 \\
+        \mathtt{true} & \text{otherwise}
+      \end{array}}\right.
+  }
+  {v_1 : \mathtt{uint[n]} \prec v_2 : \mathtt{bool}}
+
+  \infer[Bool-Uint]{v_2 = \mathbb{1}[v_1]}{v_1 : \mathtt{bool} \prec v_2 :
+    \mathtt{uint[n]}} 
+
+  \infer[Int-Bool]
+  {
+    v_2 = \left\{
+      {\begin{array}{l@{\quad:\quad}l}
+        \mathtt{false} & \text{if } v_1 = 0 \\
+        \mathtt{true} & \text{otherwise}
+      \end{array}}\right.
+  }
+  {v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{bool}}
+
+  \infer[Bool-Int]{v_2 = \mathbb{1}[v_1]}{v_1 : \mathtt{bool} \prec v_2 :
+    \mathtt{int[n]}} 
+
+  \infer[Sint-Bool]
+  {
+    v_2 = \left\{
+      {\begin{array}{l@{\quad:\quad}l}
+        \mathtt{false} & \text{if } v_1 = 0 \\
+        \mathtt{true} & \text{otherwise}
+      \end{array}}\right.
+  }
+  {v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{bool}}
+
+  \infer[Bool-Sint]{v_2 = -\mathbb{1}[v_1]}{v_1 : \mathtt{bool} \prec v_2 :
+    \mathtt{sint[n]}} 
+\end{mathpar}
+
+\subsection{Enum Rules}
+
+TODO: I'd like $\llbracket \mathtt{enum} \rrbracket$ to be an inductive data
+type, so the value of a specific enum would be a constructor, but when cast to
+an integer would result in the field number (except for \texttt{sint}'s). The
+presentation of the formal rules is just a matter of notation, I think.
 
 \printbibliography{}
 \end{document}

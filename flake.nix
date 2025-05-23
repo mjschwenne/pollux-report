@@ -20,6 +20,15 @@
         devShells.default = with pkgs;
           mkShell {
             buildInputs = [
+              # For protobuf experiments
+              protobuf
+              protoc-gen-go
+              protoscope
+              go
+              gopls
+              xxd
+
+              # LaTeX
               (texlive.combine {
                 inherit
                   (texlive)
@@ -38,6 +47,7 @@
                   enumitem
                   mathpartir
                   xcolor
+                  bbold
                   ;
               })
             ];
