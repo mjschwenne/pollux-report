@@ -622,32 +622,39 @@ descriptor is comprised of a series of field descriptors, each of which has the
 form \texttt{<<optional modifiers>> <<type>> <<field name>> = <<field
 	number>>;}. During the encoding process, each field is encoded into an
 encoding field, represented as tuple with 3 elements.
-
-\begin{definition}
+\\
+\begin{definition}[Encoding Field]
 	An encoding field is a tuple $(id, tag, value)$ which encodes the field
 	number, tag and value of one field of a proto descriptor.
 \end{definition}
 
 Just like how the message descriptor is a sequence of field descriptors, the
 encoding type of a message is an ordered list of encoding fields.
-
+\\
 \begin{definition}[Field Compatibility]
 	For fields $f_1 = (id_1, tag_1, v_1)$ and $f_2 = (id_2, tag_2, v_2)$, $f_2$
 	with descriptor $d_2$ is a compatible update to $f_1$ with descriptor $d_1$ if
 	$id_1 = id_2$ and for all values $v_1$, $serialize_{d_1}\ f_1 = bs$ and there
-	exists a $v_2$ such that $parse_{d_2}\ bs = v_2$ and $v_1 \sim v_2$ according to
-	some relation $\sim$.
+	exists a $v_2$ such that $parse_{d_2}\ bs = v_2$ and $v_1 \prec v_2$ according to
+	some relation $\prec$.
 \end{definition}
 
-One example of $\sim$ would be equality of mathematician integers represented with
-different bit widths (i.e. 32-bit to 64-bit integers).
-
+An example value relation is given in Section~\ref{sec:val-rel}.
+\\
 \begin{definition}[Message Compatibility]
 	A protobuf message descriptor $d_2$ is a compatible update to $d_1$ if every
 	field in $d_1$ has a compatible field in $d_2$.
 \end{definition}
 
-\section{Compatibility Relation}
+Formally speaking, the message compatibility relation ($\preceq$) is given in
+Section~\ref{sec:comp-rel}.
+\\
+\begin{definition}[Tag Function]
+  The tag function $tag : \text{Type} \rightarrow \text{Tag}$ maps the \texttt{proto}
+  level type to the corresponding tag as listed in Table~\ref{tab:tags}.
+\end{definition}
+
+\section{Compatibility Relation}~\label{sec:comp-rel}
 
 The descriptor compatibility relation $\preceq$ is defined as below. It is inspired by
 a subtyping relation over tuples $d = (n, \tau, m, v)$ where $n$ is a field number,
@@ -746,7 +753,7 @@ The main field-level compatibility theorem is stated below.
   \mathtt{Some}\ v_2$ and $v_1 \prec v_2$
 \end{theorem}
 
-\section{Value Relation}
+\section{Value Relation}~\label{sec:val-rel}
 
 The value relation operates on values expressed at a specific type. This
 relation shows both what types can be changed in the \textsc{Type-Chg} rules of
