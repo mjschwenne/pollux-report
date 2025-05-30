@@ -787,15 +787,17 @@ by writing all negative \texttt{int[n]} into a full 10 bytes.
 It is also worth noting that the expression $v : \tau$ actually refers to a value
 of type $\llbracket \tau \rrbracket$ with a label of the type. All of the integer
 types have $\llbracket \cdot \rrbracket = \mathbb{Z}$, which allows for the free conversion
-between integer types. Finally, $\%$ refers to modulus using floored division,
-so $-1 \mod 2 = 1$. 
+between integer types. Finally, $\%$ refers to modulus using truncated division,
+so $-1 \mod 2 = -1$ and the rules are written with truncated integer division. 
 
 \begin{mathpar}
   \infer[Uint-Chg-W]{v_2 = v_1 \mod 2^m}{v_1 : \mathtt{uint[n]} \prec v_2 : \mathtt{uint[m]}}
 
-  \infer[Int-Chg-W]{v_2 = v_1 \mod 2^m}{v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{int[m]}}
+  % This rules works ONLY if implicitly sign-extend numbers during integer promotion
+  \infer[Int-Chg-W]{v_2 = (v_1 \mod 2^m - 2^m \times \mathbb{1}[v_1 \ge 2^{m-1}]) \mod
+    2^m}{v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{int[m]}}
 
-  \infer[Sint-Chg-W]{v_2 = v_1 \mod 2^m}{v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{sint[m]}}
+  \infer[Sint-Chg-W]{v_2 = v_1 \mod 2^{m-1}}{v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{sint[m]}}
 
   \infer[Uint-Int]{v_2 = v_1 - 2^n \times \mathbb{1}[v_1 \ge 2^{n-1}]}{v_1 :
     \mathtt{uint[n]} \prec v_2 : \mathtt{int[n]}}
@@ -814,7 +816,7 @@ so $-1 \mod 2 = 1$.
     v_2 = \left\{
       {\begin{array}{l@{\quad:\quad}l}
         (-1)^{v_1} \times \left( \frac{v_1}{2} \right) - (v_1 \mod 2) & \text{if } v_1 \ge 0 \\
-        (-1)^{v_1} \times (v_1 + 2^{n-1}) - (v_1 \mod 2) & \text{otherwise}
+        (-1)^{v_1} \times \left(v_1 + 2^{n-1} - \frac{v_1}{2} \right) + (v_1 \mod 2) & \text{otherwise}
       \end{array}}\right.
   }
   {v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{sint[n]}}
@@ -824,7 +826,7 @@ so $-1 \mod 2 = 1$.
     v_2 = \left\{
       {\begin{array}{l@{\quad:\quad}l}
         2 \times |v_1| - \mathbb{1}[v_1 < 0] & \text{if } -2^{n-2} \le v_1 < 2^{n-2} \\
-        |2 \times v_1 - 2^{n-1}| - 2^{n-1} - \mathbb{1}[s < 2^{n-2}] & \text{otherwise}
+        |2 \times v_1 - 2^{n-1}| - 2^{n-1} - \mathbb{1}[v_1 < 2^{n-2}] & \text{otherwise}
       \end{array}}\right.
   }
   {v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{int[n]}}
