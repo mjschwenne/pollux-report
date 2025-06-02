@@ -38,7 +38,7 @@ func main() {
 		}
 
 		fmt.Printf("i32 encoded value: %d (dec)\n", test.Field)
-		fmt.Printf("i32 encoded value: %064b (bin)\n", uint64(test.Field))
+		fmt.Printf("i32 encoded value: %064b (bin)\n", uint32(test.Field))
 	}
 
 	if *i64o != "" {

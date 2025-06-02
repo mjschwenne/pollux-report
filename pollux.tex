@@ -681,14 +681,14 @@ neither symmetric nor anti-symmetric.
 We should be able to change field modifiers using these rules.
 
 \begin{mathpar}
-    \infer[Add-Opt]{ }{(id, \tau, \mathtt{IMPLICIT}, v) \sim (id, \tau,
+    \infer[Add-Opt]{ }{(id, \tau, \mathtt{IMPLICIT}, v) \preceq (id, \tau,
       \mathtt{OPTIONAL}, v)}
 
     {\color{red}
-    \infer[Rm-Opt]{ }{(id, \tau, \mathtt{OPTIONAL}, v) \sim (id, \tau,
+    \infer[Rm-Opt]{ }{(id, \tau, \mathtt{OPTIONAL}, v) \preceq (id, \tau,
       \mathtt{IMPLICIT}, v)}}
 
-    \infer[Add-Rep]{ }{(id, \tau, \mathtt{IMPLICIT}, v) \sim (id, \tau,
+    \infer[Add-Rep]{ }{(id, \tau, \mathtt{IMPLICIT}, v) \preceq (id, \tau,
       \mathtt{REPEATED}, v)} 
 
 \end{mathpar}
@@ -816,7 +816,7 @@ so $-1 \mod 2 = -1$ and the rules are written with truncated integer division.
     v_2 = \left\{
       {\begin{array}{l@{\quad:\quad}l}
         (-1)^{v_1} \times \left( \frac{v_1}{2} \right) - (v_1 \mod 2) & \text{if } v_1 \ge 0 \\
-        (-1)^{v_1} \times \left(v_1 + 2^{n-1} - \frac{v_1}{2} \right) + (v_1 \mod 2) & \text{otherwise}
+        (-1)^{v_1} \times \left(v_1 + 2^{n-1} - \frac{v_1}{2} \right) & \text{otherwise}
       \end{array}}\right.
   }
   {v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{sint[n]}}
