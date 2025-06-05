@@ -11,22 +11,23 @@ import (
 )
 
 func main() {
-	var i32o = flag.String("i32o", "", "Output file name for i32 struct")
 	var i32i = flag.String("i32i", "", "File name to read a protobuf blob from")
+	var i32o = flag.String("i32o", "", "Output file name for i32 struct")
+	var i64i = flag.String("i64i", "", "File name to read a protobuf blob from")
 	var i64o = flag.String("i64o", "", "Output file name for i64 struct")
 	var u32i = flag.String("u32i", "", "File name to read a protobuf blob from")
 	var u32o = flag.String("u32o", "", "Output file name for u32 struct")
-	var boolo = flag.String("boolo", "", "Output file name for bool struct")
 	var booli = flag.String("booli", "", "File name to read a protobuf blob from")
-	var s32o = flag.String("s32o", "", "Output file name for s32 struct")
+	var boolo = flag.String("boolo", "", "Output file name for bool struct")
 	var s32i = flag.String("s32i", "", "File name to read a protobuf blob from")
-	var s64o = flag.String("s64o", "", "Output file name for s32 struct")
+	var s32o = flag.String("s32o", "", "Output file name for s32 struct")
 	var s64i = flag.String("s64i", "", "File name to read a protobuf blob from")
+	var s64o = flag.String("s64o", "", "Output file name for s32 struct")
 	flag.Parse()
 
 	if *i32o != "" {
 		test := &gopb.I32{
-			Field: -9,
+			Field: 4,
 		}
 
 		out, err := proto.Marshal(test)
@@ -136,6 +137,21 @@ func main() {
 
 		fmt.Printf("i32 encoded value: %064b (bin)\n", uint32(test.Field))
 		fmt.Printf("i32 encoded value: %d (dec)\n", test.Field)
+	}
+
+	if *i64i != "" {
+		in, err := os.ReadFile(*i64i)
+		if err != nil {
+			log.Fatalln("Error reading i64 input file:", err)
+		}
+
+		test := &gopb.I64{}
+		if err := proto.Unmarshal(in, test); err != nil {
+			log.Fatalln("Failed to parse i64 test input:", err)
+		}
+
+		fmt.Printf("i64 encoded value: %064b (bin)\n", uint64(test.Field))
+		fmt.Printf("i64 encoded value: %d (dec)\n", test.Field)
 	}
 
 	if *u32i != "" {
