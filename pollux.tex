@@ -72,7 +72,18 @@
 \newtheorem{theorem}{Theorem}
 
 \newcommand{\fstar}{F$^\star$}
+\renewcommand{\emptyset}{\varnothing}
 \renewcommand{\mod}{\;\%\;}
+\newcommand{\imp}[1]{\mathtt{IMP}\ #1}
+\newcommand{\opt}[1]{\mathtt{OPT}\ #1}
+\newcommand{\rep}[1]{\mathtt{REP}\ #1}
+\newcommand{\some}[1]{\mathtt{Some}\ #1}
+\newcommand{\none}{\mathtt{NONE}}
+\newcommand{\field}[3]{\mathtt{FIELD}\ #1\ #2\ #3}
+\newcommand{\map}[4]{\mathtt{MAP}\ #1\ #2\ #3\ #4}
+\newcommand{\oneof}[2]{\mathtt{ONEOF}\ #1\ #2}
+\newcommand{\msg}[3]{\mathtt{MSG}\ #1\ #2\ #3}
+\newcommand{\enum}[2]{\mathtt{ENUM}\ #1\ #2}
 
 \begin{document}
 
@@ -613,8 +624,7 @@ the tag is from the table below.
 	\vspace{4mm}
 	\caption[]{Description of \texttt{proto} tag values. Note that values 3 and
 		4 correspond to \texttt{SGROUP} and \texttt{EGROUP}, tags used in protobuf
-		version 2 and deprecated in protobuf 3 \autocite{Encoding}.}
-    \label{tab:tags}
+		version 2 and deprecated in protobuf 3 \autocite{Encoding}.}\label{tab:tags}
 \end{table}
 
 It has finally become time for a sequence of definitions. A protobuf message
@@ -654,112 +664,69 @@ Section~\ref{sec:comp-rel}.
   level type to the corresponding tag as listed in Table~\ref{tab:tags}.
 \end{definition}
 
-\section{Compatibility Relation}~\label{sec:comp-rel}
+\section{Compatibility Relations}~\label{sec:comp-rel}
 
-The descriptor compatibility relation $\preceq$ is defined as below. It is inspired by
-a subtyping relation over tuples $d = (n, \tau, m, v)$ where $n$ is a field number,
-$\tau$ a type at the proto level, $m$ a field modifier (one of \texttt{IMPLICIT},
-\texttt{OPTIONAL} or \texttt{REPEATED}) and $v$ is a payload for the field.
-This relation is defined in terms of another relation $\prec$ defined on just values
-which allow for modification of the values during the deserialization process.
+Compatibility between protobuf entities is defined with a series of
+relations. The first and most self-contained relation is the value relation,
+which relates two values at the specification level if serializing just a value
+(such as a variable width integer) and then parsing it to a different protobuf
+type would lead to a different value. After that is the protobuf type relation,
+which relates two protobuf type is any value of the first type is related to
+some value of the second type in the value relation. Since protobuf field and
+message definitions will not have concrete values associated with them, the type
+relation can be used in place of the value relation to make safe type
+changes. Finally, the message relation connects compatible messages such that
+all instances of the original message can be parsed into instances of the updated
+message.
 
-\subsection{Basic Rules}
+\subsection{Value Relation}~\label{sec:val-rel}
 
-A compatibility relation is both reflexive and transitive, although it is
-neither symmetric nor anti-symmetric.  
+The value relation is the base level of the compatibility relations, relating
+just two individual values. Protobuf values are modeled here as a specification
+level type in \fstar{} associated with a protobuf type as listed in
+Table~\ref{tab:val-spec}. Finally, while protobuf decorators are technically
+part of the field level specification, they have been incorporated into the type
+information to allow the specification type into include \texttt{option} or
+\texttt{list} \fstar{} types.
 
-\begin{mathpar}
-   \infer[Refl]{ }{(n, \tau, m, v) \preceq (n, \tau, m, v)}
+\begin{table}[H]
+	\centering
+	\begin{tabular}{cl}
+      \toprule
+      Specification Type & Protobuf Type \\
+      \midrule
+      $\mathbb{Z}$ & \texttt{int32}, \texttt{uint32}, \texttt{sint32}
+            \texttt{int64}, \texttt{uint64}, \texttt{sint64} \\
+      $\mathbb{B}$ & \texttt{bool}    \\
+      \texttt{string} & \texttt{string}    \\
+      \texttt{list char}  & \texttt{bytes}    \\
+      -- & \texttt{float}, \texttt{double} \\
+      \bottomrule
+	\end{tabular}
 
-   \infer[Trans]{(n_1, \tau_1, m_1, v_1) \preceq (n_2, \tau_2, m_2, n_3) \\ (n_2,
-     \tau_2, m_2, n_2) \preceq (n_3, \tau_3, m_3, v_3)}{(n_1, \tau_1, m_1, v_1) \preceq (n_3, \tau_3,
-     m_3, v_3)}
-\end{mathpar}
+	\vspace{4mm}
+	\caption[]{Description of the \fstar{} type corresponding to each protobuf
+      type. Since \fstar{} doesn't support any type of floating point number,
+      specification types cannot be provided for floating point protobuf types.}\label{tab:val-spec}
+\end{table}
 
-\subsection{Modifier Rules}
+\begin{definition}[Value Relation]
+  A protobuf value at the specification level $v_1$ with protobuf type $\tau_1$ is
+  related to another value $v_2$ at type $\tau_2$, denoted $v_1 : \tau_1 \prec v_2 : \tau_2$
+  if $parse_{\tau_2}\ serialize_{\tau_1}\ v_1 = v_2$.
+\end{definition}
 
-We should be able to change field modifiers using these rules.
+\subsubsection{Basic Rules}
 
-\begin{mathpar}
-    \infer[Add-Opt]{ }{(id, \tau, \mathtt{IMPLICIT}, v) \preceq (id, \tau,
-      \mathtt{OPTIONAL}, v)}
-
-    {\color{red}
-    \infer[Rm-Opt]{ }{(id, \tau, \mathtt{OPTIONAL}, v) \preceq (id, \tau,
-      \mathtt{IMPLICIT}, v)}}
-
-    \infer[Add-Rep]{ }{(id, \tau, \mathtt{IMPLICIT}, v) \preceq (id, \tau,
-      \mathtt{REPEATED}, v)} 
-
-\end{mathpar}
-
-\subsection{Type Rules}
-
-Since the descriptor compatibility relation uses the value relation, it is
-possible to update the proto-level types of the descriptors to any other type
-related by $\prec$.
-
-\begin{mathpar}
-  \infer[Type-Chg]{v_1 : \tau_1 \prec v_2 : \tau_2}{(id, \tau_1, m, v_1) \preceq (id, \tau_2, m, v_2)}
-\end{mathpar}
-
-\subsection{Message Rules}
-
-Messages are similar to records in \fstar{} or other functional languages and
-message compatibility can take the same two routes that record subtyping can:
-width compatibility and depth compatibility. In width compatibility updates, new
-fields are added to the message, making the updated version a strict superset of
-the original message. In depth compatibility updates, the number of fields
-remains the same, but other attributes of the field are updated compatible ways.
+The value relation is reflexive and transitive.
 
 \begin{mathpar}
-  \infer[Msg-Width]{n \le m}{\{d_1, \dots, d_n\} \preceq \{d_1, \dots, d_n,
-    \dots, d_m\}}
+  \infer[Refl]{ }{v:\tau \prec v:\tau}
 
-  \infer[Msg-Depth]{d_1 \preceq d_1' \\ \cdots \\ d_n \preceq d_n'}{\{d_1,
-    \dots, d_n\} \preceq \{d_1', \dots, d_n'\}}
-
-  \hspace{1cm}
-  \infer[Msg-Field]{\mathtt{msg}_1 \preceq \mathtt{msg}_2}{(id, \mathtt{msg}_1,
-    m, v) \preceq (id, \mathtt{msg}_2, m, v)} 
+  \infer[Trans]{v_1:\tau_1 \prec v_2:\tau_2 \\ v_2:\tau_2 \prec v_3:\tau_3}{v_1:\tau_1 \prec v_3:\tau_3}
 \end{mathpar}
 
-\subsection{Enum Rules}
-
-The enum rules are similar to the message rules at least in the sense that enums
-can be updated to have new fields without issue. However, when considering
-removing fields from an enum definition, it is important to know if the enum is
-treated as open or closed~\cite{EnumBehavior}. By default, \texttt{proto3}
-treats all enums as open, so it should be possible to write a rule allowing for
-the deletion of an enum field. This naturally aligns with how \texttt{go}
-handles enums, since it doesn't support closed enums. Since protobuf enums don't
-contain extra information, no depth rules is allowed.
-
-\begin{mathpar}
-  \infer[Enum-Width]{n \le m}{\{id_1, \dots, id_n\} \preceq \{id_1, \dots, id_n,
-    \dots, id_m\}}
-
-  \infer[Enum-Field]{\mathtt{enum}_1 \preceq \mathtt{enum}_2}{(id, \mathtt{enum}_1,
-    m, v) \preceq (id, \mathtt{enum}_2, m, v)} 
-\end{mathpar}
-
-\subsection{Compatibility Theorem}
-
-The main field-level compatibility theorem is stated below.
-\\
-\begin{theorem}[Field Compatibility]
-  If $d_1 \preceq d_2$ then for all binary strings $bs$ such that
-  $\mathtt{parse}_{d_1}\ bs = \mathtt{Some}\ v_1$, $\mathtt{parse}_{d_2}\ bs =
-  \mathtt{Some}\ v_2$ and $v_1 \prec v_2$
-\end{theorem}
-
-\section{Value Relation}~\label{sec:val-rel}
-
-The value relation operates on values expressed at a specific type. This
-relation shows both what types can be changed in the \textsc{Type-Chg} rules of
-$\preceq$. 
-
-\subsection{String \& Byte Rules}
+\subsubsection{String \& Byte Rules}
 
 It is possible to convert been the \texttt{string} and \texttt{bytes} types,
 although the host program may have to deal with control character bytes being
@@ -771,7 +738,7 @@ present in the resulting string.
   \infer[Byte-Str]{ }{v : \mathtt{bytes} \prec v : \mathtt{string}}
 \end{mathpar}
 
-\subsection{Integer Rules}
+\subsubsection{Integer Rules}
 
 As a shorthand, statements like \texttt{uint[n]} represent a variable length
 integer encoding into $n$ bits. In order to result in valid protobuf types, $n \in
@@ -786,18 +753,20 @@ by writing all negative \texttt{int[n]} into a full 10 bytes.
 
 It is also worth noting that the expression $v : \tau$ actually refers to a value
 of type $\llbracket \tau \rrbracket$ with a label of the type. All of the integer
-types have $\llbracket \cdot \rrbracket = \mathbb{Z}$, which allows for the free conversion
-between integer types. Finally, $\%$ refers to modulus using truncated division,
-so $-1 \mod 2 = -1$ and the rules are written with truncated integer division. 
+types have $\llbracket \cdot \rrbracket = \mathbb{Z}$, as shown in Table~\ref{tab:val-spec},
+which allows for the free conversion between integer types. Finally, $\%$ refers
+to modulus using floored division, so $-1 \mod 2 = 1$ and the rules are
+written with truncated integer division.
 
 \begin{mathpar}
   \infer[Uint-Chg-W]{v_2 = v_1 \mod 2^m}{v_1 : \mathtt{uint[n]} \prec v_2 : \mathtt{uint[m]}}
 
-  % This rules works ONLY if implicitly sign-extend numbers during integer promotion
-  \infer[Int-Chg-W]{v_2 = (v_1 \mod 2^m - 2^m \times \mathbb{1}[v_1 \ge 2^{m-1}]) \mod
-    2^m}{v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{int[m]}}
+  \infer[Int-Chg-W]{v_2 = (v_1 \mod 2^{m-1} - 2^{m-1} \times \mathbb{1}[v_1 < 0]}{v_1
+    : \mathtt{int[n]} \prec v_2 : \mathtt{int[m]}}
 
-  \infer[Sint-Chg-W]{v_2 = v_1 \mod 2^{m-1}}{v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{sint[m]}}
+  \infer[Sint-Chg-W]{v_2 = v_1 \mod 2^{m-1} - 2^{m-1} \times
+    \mathbb{1}\left[\frac{v_1}{2^{m-1}} \mod 2 = 1\right]}{v_1 :
+    \mathtt{sint[n]} \prec v_2 : \mathtt{sint[m]}}
 
   \infer[Uint-Int]{v_2 = v_1 - 2^n \times \mathbb{1}[v_1 \ge 2^{n-1}]}{v_1 :
     \mathtt{uint[n]} \prec v_2 : \mathtt{int[n]}}
@@ -826,13 +795,15 @@ so $-1 \mod 2 = -1$ and the rules are written with truncated integer division.
     v_2 = \left\{
       {\begin{array}{l@{\quad:\quad}l}
         2 \times |v_1| - \mathbb{1}[v_1 < 0] & \text{if } -2^{n-2} \le v_1 < 2^{n-2} \\
-        |2 \times v_1 - 2^{n-1}| - 2^{n-1} - \mathbb{1}[v_1 < 2^{n-2}] & \text{otherwise}
+        2 \times |v_1| - 2^n - \mathbb{1}[v_1 < 0] & \text{otherwise}
       \end{array}}\right.
   }
   {v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{int[n]}}
 \end{mathpar}
 
-\subsection{Boolean Rules}
+\subsubsection{Boolean Rules}
+
+Booleans can be converted to and from any of the integer types.
 
 \begin{mathpar}
   \infer[Uint-Bool]
@@ -875,12 +846,257 @@ so $-1 \mod 2 = -1$ and the rules are written with truncated integer division.
     \mathtt{sint[n]}} 
 \end{mathpar}
 
-\subsection{Enum Rules}
+\subsubsection{Message \& Enum Rules}
 
-TODO: I'd like $\llbracket \mathtt{enum} \rrbracket$ to be an inductive data
-type, so the value of a specific enum would be a constructor, but when cast to
-an integer would result in the field number (except for \texttt{sint}'s). The
-presentation of the formal rules is just a matter of notation, I think.
+Definitions for the structure of a message and enum are given in
+Section~\ref{sec:msg-rel}.
+
+\begin{mathpar}
+  \infer[Msg]{m_1 \preceq m_2 \\ v_1 \prec v_1' \\ \cdots \\ v_n \prec v_n'}{\left\{ v_1, \dots,
+      v_n \right\} : \mathtt{MSG}\ m_1 \prec \left\{ v_1', \dots, v_n' \right\} :
+    \mathtt{MSG}\ m_2}
+
+  \infer[Enum]{v \in vals(e_2)}{v : \enum{s_1}{e_1} \prec v : \enum{s_2}{e_2}}
+\end{mathpar}
+
+\subsubsection{Decorator Rules}
+
+Since the specification type can include \texttt{option}'s and \texttt{list}'s,
+rules for handling these must also be present in the value relation. These rules
+are grouped into introduction rules, which take implicit values and make them
+optional or repeated, pass through rules which enable the above rules to operate
+on these modified types.
+
+{\color{red} There really should be a rule which can introduce a \texttt{None},
+  but since implicit fields are modeled as just the spec type, this is
+  difficult. I will likely need to model both implicit and optional fields with
+  an \texttt{option}, add an annotation to the protobuf type and provide a
+  function which introduces a default value for each type.}
+
+\begin{mathpar}
+  \infer[Rep-Pass]{v_1:\tau_1 \prec v_1':\tau_2 \\ \cdots \\ v_n:\tau_1 \prec v_n':\tau_2}{[v_1; \dots;
+    v_n]: \rep{\tau_1} \prec [v_1'; \dots; v_n']: \rep{\tau_2}}
+
+  \infer[Opt-Some-Pass]{v_1:\tau_1 \prec v_2:\tau_2}{(\some{v_1}): \opt{\tau_1} \prec
+    (\some{v_2}): \opt{\tau_2}}
+
+  \infer[Opt-None-Pass]{ }{\none: \opt{\tau_1} \prec \none: \opt{\tau_2}}
+  
+  \infer[Opt-Intro]{ }{v:\tau \prec (\some{v}): \opt{\tau}}
+
+  \infer[Rep-Intro]{ }{v:\tau \prec [v]: \rep{\tau}}
+\end{mathpar}
+
+\subsection{Type Relation}~\label{sec:typ-rel}
+
+This relation relates types which can be converted via the value relation.
+\\
+\begin{definition}[Type Relation]
+  The type relation relates two protobuf type $\tau_1$ and $\tau_2$, denoted $\tau_1 \propto
+  \tau_2$ if for all $v_1:\tau_1$ there exists a $v_2:\tau_2$ such that $v_1:\tau_1 \prec v_2:\tau_2$.
+\end{definition}
+
+\subsubsection{Base Type Rules}
+
+\begin{mathpar}
+  \infer[Str-Byt-T]{ }{\mathtt{string} \propto \mathtt{bytes}}
+
+  \infer[Byt-Str-T]{ }{\mathtt{bytes} \propto \mathtt{string}}
+
+  \infer[Int-Int-T]{\tau_1, \tau_2 \in \left\{{
+        \begin{array}{c}
+          \texttt{int32}, \texttt{int64}, \texttt{uint32}, \texttt{uint64} \\
+          \texttt{sint32}, \texttt{sint64}, \texttt{bool}
+        \end{array}
+      }\right\}}{\tau_1 \propto \tau_2}
+\end{mathpar}
+
+\subsubsection{Message \& Enum Rules}
+
+\begin{mathpar}
+  \infer[Msg-T]{m_1 \preceq m_2}{\mathtt{MSG}\ m_1 \propto \mathtt{MSG}\ m_2}
+
+  \infer[Enum-T]{vals(e_1) \subset vals(e_2)}{\enum{s_1}{e_1} \propto \enum{s_2}{e_2}}
+\end{mathpar}
+
+\subsubsection{Decorator Rules}
+
+Since the type relation is designed for checking for safe type changes, it also
+need to ensure that decorator restrictions like moving from a repeated field to
+a singleton one aren't violated.
+
+\begin{mathpar}
+  \infer[Opt-Add-T]{ }{\tau \propto \opt{\tau}}
+
+  \infer[Opt-Rm-T]{ }{\opt{\tau} \propto \tau}
+
+  \infer[Opt-T]{\tau_1 \propto \tau_2}{\opt{\tau_1} \propto \opt{\tau_2}}
+
+  \infer[Rep-Add-T]{ }{\tau \propto \rep{\tau}}
+
+  \infer[Rep-T]{\tau_1 \propto \tau_2}{\rep{\tau_1} \propto \rep{\tau_2}}
+\end{mathpar}
+
+\subsection{Message Relation}~\label{sec:msg-rel}
+
+The descriptor compatibility relation $\preceq$ is defined as below, but first it is
+important to discuss the structure of fields and messages.
+
+Each field is one of three different type of fields, the standard scalar field,
+a map field or a \texttt{oneof} field. Specifically, the inductive type for
+each style of field contains these pieces of information:
+
+\begin{itemize}
+\item \texttt{FIELD}: Contains the name of the field, the identifying field
+  number and protobuf type (containing the decorator as well, possibly
+  \texttt{OPT} or \texttt{REP}).
+\item \texttt{MAP}: Contains the name of the field, the identifying field number
+  and two protobuf types, one for the keys and one of the values.
+\item \texttt{ONEOF}: Contains a name and a set of other fields.
+\end{itemize}
+
+A message descriptor and an enum descriptor are modeled one step above a field,
+containing the following pieces of information:
+
+\begin{itemize}
+\item \texttt{MSG}: Contains the name of the message, a set of reserved indices
+  and then a set of field definitions.
+\item \texttt{ENUM}: Contains a set of name, id number pairs.
+\end{itemize}
+
+\subsubsection{Basic Rules}
+
+A compatibility relation is both reflexive and transitive, although it is
+neither symmetric nor anti-symmetric.  
+
+\begin{mathpar}
+   \infer[Refl-M]{ }{\msg{s}{r}{f} \preceq \msg{s}{r}{f}}
+
+   \infer[Refl-E]{ }{\enum{s}{v} \preceq \enum{s}{v}}
+
+   \infer[Trans-M]{\msg{s_1}{r_1}{f_1} \preceq \msg{s_2}{r_2}{f_2} \\
+     \msg{s_2}{r_2}{f_2} \preceq \msg{s_3}{r_3}{f_3}}{\msg{s_1}{r_1}{f_1} \preceq
+     \msg{s_3}{r_3}{f_3}}
+
+   \infer[Trans-E]{\enum{s_1}{v_1} \preceq \enum{s_2}{v_2} \\
+     \enum{s_2}{v_2} \preceq \enum{s_3}{v_3}}{\enum{s_1}{v_1} \preceq \enum{s_3}{v_3}}
+\end{mathpar}
+
+\subsubsection{Field Update Rules}
+
+For the moment, names are recorded the protobuf field descriptors for accuracy
+and to allow the relations to expand in the future. However, since names are
+recorded in the encoded message, they are currently allowed to freely change.
+
+\begin{mathpar}
+  \infer[Field-Name]{ }{\msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau}\})} \preceq
+    \msg{s_m}{r}{(f \cup \{\field{s_f'}{id}{\tau}\})}}
+
+  \infer[Map-Name]{ }{\msg{s_m}{r}{(f \cup \{\map{s_f}{id}{\tau_1}{\tau_2}\})} \preceq
+    \msg{s_m}{r}{(f \cup \{\map{s_f'}{id}{\tau_1}{\tau_2}\})}}
+
+  \infer[Oneof-Name]{ }{\msg{s_m}{r}{(f \cup \{\oneof{s_f}{f_o}\})} \preceq
+    \msg{s_m}{r}{(f \cup \{\oneof{s_f'}{f_o}\})}}
+
+  \infer[Field-Type]{\tau_1 \propto \tau_2}{\msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau_1}\})} \preceq
+    \msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau_2}\})}}
+
+  % TODO: May need restrictions about maps in maps...
+  \infer[Map-Type-F]{\tau_1 \propto \tau_1' \\ \tau_2 \propto \tau_2' \\ \tau_1 \ne
+    \mathtt{bytes}}{\msg{s_m}{r}{(f \cup \{\map{s_f}{id}{\tau_1}{\imp{\tau_2}}\})} \preceq
+    \msg{s_m}{r}{(f \cup \{\map{s_f}{id}{\tau_1'}{\imp{\tau_2'}}\})}}
+\end{mathpar}
+
+\subsubsection{Oneof Rules}
+
+The \texttt{oneof} rules are a bit complicated because a \texttt{oneof}
+struggles against the notion that the field relations only connects one field to
+one field by encapsulating several fields into a singular field.
+
+\begin{mathpar}
+  \infer[Oneof-Intro-Field]{m \in \{\mathtt{IMP}, \mathtt{OPT}\}}{\msg{s_m}{r}{(f
+      \cup \{\field{s_f}{id}{(m\ \tau)}\})} \preceq \msg{s_m}{r}{(f \cup
+      \{\oneof{s_o}{\{\field{s_f}{id}{(m\ \tau)}\}}\})}}
+
+  % May need some statement about f_{n+1} not already being in the message?
+  % You can introduce a new field, but not move an existing one.
+  \infer[Oneof-Add-F]{m \in \{\mathtt{IMP}, \mathtt{OPT}\} \\ s_n \not \in names(f \cup
+    f_o) \\ id_n \not \in ids(f \cup f_o)}{\msg{s_m}{r}{f \cup \{\oneof{s_f}{f_o}\}} \preceq
+    \msg{s_m}{r}{f \cup \{\oneof{s_f}{(f_o \cup \{\field{s_n}{id_n}{(m\ \tau)}\})}\}}}
+
+  % This rule should just be a combination of the above two rules...
+  \infer[Oneof-Intro-New]{s_f \not \in names(f) \\ ids(f) \cap ids(f_o) = \emptyset \\
+    names(f) \cap names(f_o) = \emptyset \\\\ \mathtt{REP} \not \in dec(f_o) \\ \forall f_n \in f_o.\
+    f \ne \mathtt{MAP}}{\msg{s_m}{r}{f} \preceq \msg{s_m}{r}{(f \cup
+      \{\oneof{s_f}{f_o}\})}}
+
+  \infer[Oneof-Elim]{ }{\msg{s_m}{r}{(f \cup \{\oneof{s_f}{f_o}\})} \preceq \msg{s_m}{r}{(f
+      \cup \{f_o\})}}
+
+  % I'm not sure about the premise of this rule, but it seems better than having
+  % to making another version of all the other rules. This is the first instance
+  % where having a field relation would be very helpful.
+  \infer[Oneof-Feild-Update]{\msg{``"}{\emptyset}{\{f\}} \preceq
+    \msg{``"}{\emptyset}{\{f'\}}}{\msg{s}{r}{(f_m \cup \{\oneof{s_f}{(f_{o} \cup \{f\})}\})} \preceq
+    \msg{s}{r}{(f_m \cup \{\oneof{s_f}{(f_o \cup \{f'\})}\})}}
+\end{mathpar}
+
+\subsubsection{Field \& Enum Rules}
+
+Messages are similar to records in \fstar{} or other functional languages and
+message compatibility can take the same two routes that record subtyping can:
+width compatibility and depth compatibility. In width compatibility updates, new
+fields are added to the message, making the updated version a strict superset of
+the original message. In depth compatibility updates, the number of fields
+remains the same, but other attributes of the field are updated compatible ways.
+
+\begin{mathpar}
+  \infer[Msg-Width-Field]{s_f \not \in names(f) \\ id \not \in
+    ids(f)}{\msg{s_m}{r}{f} \preceq \msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau}\})}}
+
+  \infer[Msg-Width-Depth]{\msg{``"}{\emptyset}{\{f\}} \preceq
+    \msg{``"}{\emptyset}{\{f'\}}}{\msg{s_m}{r}{(fs \cup \{f\})} \preceq
+    \msg{s_m}{r}{(fs \cup \{f'\})}}
+\end{mathpar}
+
+The enum rules are similar to the message rules at least in the sense that enums
+can be updated to have new fields without issue. However, when considering
+removing fields from an enum definition, it is important to know if the enum is
+treated as open or closed~\cite{EnumBehavior}. By default, \texttt{proto3}
+treats all enums as open, so it should be possible to write a rule allowing for
+the deletion of an enum field. This naturally aligns with how \texttt{go}
+handles enums, since it doesn't support closed enums. Since protobuf enums don't
+contain extra information, no depth rules is allowed.
+
+\begin{mathpar}
+  \infer[Enum-Width]{vals(e_1) \subset vals(e_2)}{\enum{s_1}{e_1} \preceq \enum{s_2}{e_2}}
+\end{mathpar}
+
+\subsubsection{Reserved Field Rules}
+
+\begin{mathpar}
+  \infer[Reserved-Add]{r \subset r'}{\msg{s}{r}{f} \preceq \msg{s}{r'}{f}}
+
+  {\color{red}
+    \infer[Reserved-Rm]{r \supset r'}{\msg{s}{r}{f} \preceq \msg{s}{r'}{f}}
+  }
+\end{mathpar}
+
+\subsubsection{Valid Descriptors}
+
+\begin{definition}[Valid Protobuf Descriptors]
+  A protobuf message descriptor is \emph{valid} if $\msg{``"}{\emptyset}{\emptyset} \preceq \msg{s}{r}{f}$.
+\end{definition}
+
+\subsubsection{Compatibility Theorem}
+
+The main field-level compatibility theorem is stated below.
+\\
+\begin{theorem}[Field Compatibility]
+  If $d_1 \preceq d_2$ then for all binary strings $bs$ such that
+  $\mathtt{parse}_{d_1}\ bs = \mathtt{Some}\ v_1$, $\mathtt{parse}_{d_2}\ bs =
+  \mathtt{Some}\ v_2$ and $v_1 \prec v_2$
+\end{theorem}
 
 \printbibliography{}
 \end{document}
