@@ -664,6 +664,35 @@ Section~\ref{sec:comp-rel}.
   level type to the corresponding tag as listed in Table~\ref{tab:tags}.
 \end{definition}
 
+It is also important to understand the default values of each protobuf
+type. When a field is serialized with the default value or not set in the
+message, the parser places the default value in the resulting struct. The
+primary difference between an implicit field and an optional field is that the
+optional field can differentiate between the serialized field being omitted from
+the message or being present, but having the default value.
+\\
+\begin{definition}[Default Function]
+  The default function
+  $default: (t:\text{proto type}) \rightarrow \llbracket t \rrbracket$ returns the default
+  value for each type.
+  
+  \[ default(t) = \left\{ 
+    \begin{array}{l@{\quad:\quad}l}
+      0 & t \in \left\{\begin{array}{c}
+        \mathtt{int32}, \mathtt{int64}, \mathtt{uint32},
+        \mathtt{uint64}, \mathtt{sint32}, \mathtt{sint64}, \\ \mathtt{fixed32},
+        \mathtt{fixed64}, \mathtt{sfixed32}, \mathtt{sfixed64}, \mathtt{enum}
+      \end{array}\right\} \\
+      \mathtt{false} & t \text{ is } \mathtt{bool} \\
+      ``" & t \text{ is } \mathtt{string} \\
+      % 0 width space needed so that the brackets don't parse as a distance to
+      % space out the elements of the array... for some unknown reason.
+      \hspace{0pt}[\;] & t \text{ is } \mathtt{bytes}
+    \end{array}\right.
+  \]
+\end{definition}
+
+
 \section{Compatibility Relations}~\label{sec:comp-rel}
 
 Compatibility between protobuf entities is defined with a series of
@@ -849,12 +878,14 @@ Booleans can be converted to and from any of the integer types.
 \subsubsection{Message \& Enum Rules}
 
 Definitions for the structure of a message and enum are given in
-Section~\ref{sec:msg-rel}.
+Section~\ref{sec:msg-rel}. The values are represented as a mapping from the id
+number of each field to the value and type of that field. 
 
 \begin{mathpar}
-  \infer[Msg]{m_1 \preceq m_2 \\ v_1 \prec v_1' \\ \cdots \\ v_n \prec v_n'}{\left\{ v_1, \dots,
-      v_n \right\} : \mathtt{MSG}\ m_1 \prec \left\{ v_1', \dots, v_n' \right\} :
-    \mathtt{MSG}\ m_2}
+  \infer[Msg]{\forall\ i \in ids(v_{m_2}).\ (i \in ids(v_{m_1}) \wedge v_i \prec v_i') \vee v_i' =
+    default(\tau_i')}{v_{m_1} = \left\{ id_1:(v_1, \tau_1) \dots, id_n: (v_n, \tau_n)
+    \right\} : \mathtt{MSG}\ m_1 \prec v_{m_2} = \left\{ id_1':(v_1', \tau_1') \dots,
+      id_m':(v_m', \tau_m') \right\} : \mathtt{MSG}\ m_2}
 
   \infer[Enum]{v \in vals(e_2)}{v : \enum{s_1}{e_1} \prec v : \enum{s_2}{e_2}}
 \end{mathpar}
@@ -885,6 +916,8 @@ on these modified types.
   \infer[Opt-Intro]{ }{v:\tau \prec (\some{v}): \opt{\tau}}
 
   \infer[Rep-Intro]{ }{v:\tau \prec [v]: \rep{\tau}}
+
+  \infer[Missing-Imp]{ }{\none: \tau_1 \prec default(\tau_2):\tau_2}
 \end{mathpar}
 
 \subsection{Type Relation}~\label{sec:typ-rel}
