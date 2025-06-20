@@ -1118,7 +1118,8 @@ contain extra information, no depth rules is allowed.
 \subsubsection{Valid Descriptors}
 
 \begin{definition}[Valid Protobuf Descriptors]
-  A protobuf message descriptor is \emph{valid} if $\msg{``"}{\emptyset}{\emptyset} \preceq \msg{s}{r}{f}$.
+  A protobuf message descriptor is \emph{valid}, denoted $v(d)$ if
+  $\msg{``"}{\emptyset}{\emptyset} \preceq \msg{s}{r}{f}$.
 \end{definition}
 
 \subsubsection{Compatibility Theorem}
@@ -1130,6 +1131,40 @@ The main field-level compatibility theorem is stated below.
   $\mathtt{parse}_{d_1}\ bs = \mathtt{Some}\ v_1$, $\mathtt{parse}_{d_2}\ bs =
   \mathtt{Some}\ v_2$ and $v_1 \prec v_2$
 \end{theorem}
+
+\section{Considerations for Other Formats}
+
+Protobuf is not the only binary encoding format with a schema language, a few
+notable other examples include CBOR with CDDL and JSON with JSON schema. Any
+data language with way to specify a schema for a particular type of message can
+have compatibility questions, simply put, does this encoded binary blob conform
+to the known specification of the message?
+
+Taking CBOR / CDDL as an example, there are immediately several
+differences. First, CBOR is a self-describing format, meaning that any valid
+blob of CBOR can be parsed without a schema to parse again. The header of each
+CBOR field completely define the type and value of the field. On the other hand,
+the exact value of a variable length integer field in a protobuf blob can't be
+exactly known until the schema is consulted to know if the field is a
+\texttt{sint32} or \texttt{uint64}. Another important difference is that
+protobuf (at least \texttt{proto3}) has no way to mark a field as required while
+most fields in CDDL are required by default.
+
+It is also worth noting the CDDL is much more proscriptive. Using what the CDDL
+specification calls ``controls'', it is possible to describe an integer which is
+within a specific, arbitrary range. While this feels at first glance like it
+would open up even more questions, running with the integer example, with only
+one integer encoding it is clear that the range can only grow. The CDDL schema
+has to start restrictive to be updated to be less restrictive since it can never
+shrink. In this sense, CDDL is more rigid than protobuf, without the flexibility
+to transition between types of integer in protobuf, stripping out a lot of the
+rules in Section~\ref{sec:val-rel}. In that sense, protobuf offers a lot of
+interesting features, like a form of post-processing as integer types change,
+I don't expect to be present with CDDL.
+
+At the moment, it seems like Protobuf provides a more self-contained project and
+is more flexible, even if some of the features which enable this drive protobuf
+away from similar formats. 
 
 \printbibliography{}
 \end{document}
