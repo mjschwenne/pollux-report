@@ -311,3 +311,6 @@ tmp
 # Nix stuff 
 .envrc
 .direnv
+
+# Rust 
+cddl-test/target

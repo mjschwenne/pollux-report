@@ -4,17 +4,22 @@
   inputs = {
     nixpkgs.url = "nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
+    cddl.url = "github:anweiss/cddl";
+    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
   outputs = {
     nixpkgs,
     flake-utils,
+    cddl,
+    rust-overlay,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (
       system: let
+        overlays = [(import rust-overlay)];
         pkgs = import nixpkgs {
-          inherit system;
+          inherit system overlays;
         };
       in {
         devShells.default = with pkgs;
@@ -27,6 +32,8 @@
               go
               gopls
               xxd
+              cddl.packages.${system}.default
+              rust-bin.stable.latest.default
 
               # LaTeX
               (texlive.combine {

@@ -24,11 +24,13 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
 \usepackage{stmaryrd}
 \usepackage[backend=biber,sorting=ynt]{biblatex}
 \addbibresource{pollux.bib}
 \author{Matt Schwennesen}
-\title{Pollux: Protobuf Compatibility Checking}
+\title{Pollux: Parser Compatibility Checking}
 \date{}
 \hypersetup{
  pdfauthor={Matt Schwennesen},
@@ -1132,39 +1134,177 @@ The main field-level compatibility theorem is stated below.
   \mathtt{Some}\ v_2$ and $v_1 \prec v_2$
 \end{theorem}
 
-\section{Considerations for Other Formats}
+\section{Considerations for Other Formats (CBOR+CDDL)}
 
 Protobuf is not the only binary encoding format with a schema language, a few
-notable other examples include CBOR with CDDL and JSON with JSON schema. Any
+notable other examples include CBOR with CDDL
+\cite{birkholzConciseDataDefinition2019,bormannConciseBinaryObject2020}, JSON
+with JSON schema
+\cite{wrightJSONSchemaMedia2022,brayJavaScriptObjectNotation2017} and ASN1
+\cite{ASN1EncodingRules2021}. JSON schema even has prior work examining this
+problem, but in an unverified way \cite{habibFindingDataCompatibility2021}. Any
 data language with way to specify a schema for a particular type of message can
 have compatibility questions, simply put, does this encoded binary blob conform
-to the known specification of the message?
+to the known specification of the message? Expressed mathematically, we want
 
-Taking CBOR / CDDL as an example, there are immediately several
-differences. First, CBOR is a self-describing format, meaning that any valid
-blob of CBOR can be parsed without a schema to parse again. The header of each
-CBOR field completely define the type and value of the field. On the other hand,
-the exact value of a variable length integer field in a protobuf blob can't be
-exactly known until the schema is consulted to know if the field is a
-\texttt{sint32} or \texttt{uint64}. Another important difference is that
-protobuf (at least \texttt{proto3}) has no way to mark a field as required while
-most fields in CDDL are required by default.
+\[ \forall\ m_1:d_1.\ \exists\ m_2:d_2.\ decode(encode(m_1)) = \mathtt{Some}\ m_2 \wedge m_1 \sim m_2 \]
+
+according to some relation $\sim$. 
+
+\subsection{CBOR+CDDL vs Protobuf}
+
+Taking CBOR+CDDL as an example, there are a large number of similarities along
+with some important differences. In both cases, the schema can be viewed as a
+record type and the messages themselves as a typed record which may or may not
+be an instance of any given schema defined type. The exact structure of the
+schema types is naturally difference, since protobuf required identifying
+numbers for every field while CDDL does not.
+
+Some of the differences include that CBOR is a self-describing format, meaning
+that any valid blob of CBOR can be parsed without a schema to parse again. The
+header of each CBOR field completely define the type and value of the field. On
+the other hand, the exact value of a variable length integer field in a protobuf
+blob can't be exactly known until the schema is consulted to know if the field
+is a \texttt{sint32} or \texttt{uint64}. It can be viewed that CBOR splits the
+parsing process into two steps. First, the blob is parsed into a record, and
+then it is validated against the specification defined in CDDL. Another
+difference is that protobuf (at least \texttt{proto3}) has no way to mark a
+field as required while fields in CDDL are required by default.
+
+Given that a valid CBOR blob can be parsed independently of any schema, the base
+unit of consideration between CBOR and protobuf is different. We can start with
+the parsed CBOR map (to grab the technical term) while protobuf forces
+considerations about the encoding and schema together. 
 
 It is also worth noting the CDDL is much more proscriptive. Using what the CDDL
 specification calls ``controls'', it is possible to describe an integer which is
-within a specific, arbitrary range. While this feels at first glance like it
-would open up even more questions, running with the integer example, with only
-one integer encoding it is clear that the range can only grow. The CDDL schema
-has to start restrictive to be updated to be less restrictive since it can never
-shrink. In this sense, CDDL is more rigid than protobuf, without the flexibility
-to transition between types of integer in protobuf, stripping out a lot of the
-rules in Section~\ref{sec:val-rel}. In that sense, protobuf offers a lot of
-interesting features, like a form of post-processing as integer types change,
-I don't expect to be present with CDDL.
+within a specific, arbitrary range or an array (protobuf \texttt{repeated}
+field) of a specific length \cite{birkholzConciseDataDefinition2019}. While this
+feels at first glance like it would open up even more questions, running with
+the integer example, with only one integer encoding it is clear that the range
+can only grow. The CDDL schema has to start restrictive to be updated to be less
+restrictive since it can never shrink. In this sense, CDDL is more rigid than
+protobuf, without the flexibility to transition between types of integer in
+protobuf, stripping out a lot of the rules in Section~\ref{sec:val-rel}. In that
+sense, protobuf offers a lot of interesting features, like a form of
+post-processing as integer types change.
 
-At the moment, it seems like Protobuf provides a more self-contained project and
-is more flexible, even if some of the features which enable this drive protobuf
-away from similar formats. 
+\subsection{Adapting CBOR to Pollux}
+
+Since the goal of Pollux is to start building a framework about general parser
+compatibility (i.e.\ what happens if you parse with the wrong parser), it should
+be general enough to express both protobuf and CBOR, as orthogonal as they
+appear at the surface.
+
+In the theory for protobuf, there are a number of relations at play. Briefly,
+let's think about what each of the three relations would look like for CBOR:
+
+\begin{itemize}
+\item Value relation: Since each CBOR encoded value includes a header byte and
+  argument (which in the case of an integer is actually the value of the
+  integer, but for other types like text strings or byte strings would be the
+  length of the string) before the value itself, we don't have the flexibility
+  to slide values between types like we do in protobuf. Also, there is only one
+  type of integer\ldots which is were most of the work on protobuf is focused. This
+  relation would likely be nearly an identity relation with tagged values
+  providing the most likely departure from an identity relation.
+\item Compatible type relation: Like with the value relation, the one-to-one
+  mapping from major types to base types in CDDL severely restricts the
+  compatible type relation to be nearly an identity relation. However, once
+  again tagged value and message types are likely to require some care.
+\end{itemize}
+
+Now, the above two points are \emph{possibly} lies. The presence of controls in
+CDDL present an opportunity to add refinement types to the abstract value types,
+in which case the value and type relations would grow in size (and complexity)
+quite a bit. They would need to contain terms like
+$5\ :\ \mathtt{int}\ .\mathtt{lt}\ 10 \prec 5\ :\ \mathtt{int}\ .\mathtt{lt}\ 15$
+and $\mathtt{int}\ \mathtt{.lt}\ 10 \propto \mathtt{int}\ \mathtt{.lt}\ 15$. Note that
+the value itself could never change, but the type can. The notation is a bit
+clumsy, in my opinion, but comes directly from CDDL.
+
+In both protobuf and CDDL, the final compatibility relation is still a
+particular flavor of subtyping relation between message or map definitions. Each
+of the two relations have points of complexity. In Protobuf, everything is
+optional, allows for the addition of new fields which must obey the rules
+defined by the protobuf language. CBOR on the other hand has required fields by
+default, so the addition of new fields is limited to adding optional fields (and
+maybe pulling a field out of a wildcard repeated field?) while there is much
+more to think about with the refinement types that can be expressed in CDDL that
+protobuf lacks.
+
+\subsection{Adapting Protobuf to CBOR}
+
+One could re-frame the protobuf parsing process to separate the parsing and
+validation steps. That middle, intermediate representation is exactly what the
+\texttt{protoscope} tool outputs. Some notable features is that representation
+include
+
+\begin{itemize}
+\item All \texttt{varint} fields are unsigned integers which are then cast into
+  the correct type according to the rules and functions in
+  Section~\ref{sec:val-rel}.
+\item Tags (which would be types in \texttt{protoscope}, using the term to refer
+  to the language rather then the tool. Use context to differentiate.) for
+  \texttt{I32} and \texttt{I64} could only be interpreted as a list of bytes of
+  the correct length. Casting to either a \texttt{fixed}, \texttt{sfixed} or
+  floating point number would be part of the validation process.
+\item The tricky case here is clearly \texttt{LEN}, and more specifically nested
+  messages. Realistically, a tool like \texttt{protoscope} doesn't need to know
+  the schema of a nested message to produce a low level representation but it
+  does need to know that a \texttt{LEN} field is a nested message and not a
+  \texttt{string}, \texttt{bytes} or a packed \texttt{repeated} field.
+\end{itemize}
+
+Represented visually, the process for both CBOR+CDDL and Protobuf would look
+like this:
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \node[draw] (blob) at (0, 0) {Binary Blob};
+      \node[draw] (ir) at (5, 0) {Low-Level Struct};
+      \node[draw] (fin) at (10, 0) {Final Struct};
+
+      \draw[-{LaTeX}] (blob) -- node[above]{Parsing} (ir);
+      \draw[-{LaTeX}] (ir) -- node[above]{Validation} (fin);
+    \end{tikzpicture}
+    \caption{Progression from binary blob to fully parsed and validated struct.}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.4\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \node[draw] (pp) at (0, 0) {P}; \node[draw] (pv) at (3, 0) {V};
+
+      \draw[-{LaTeX}] (pp) edge[bend right] (pv); \draw[-{LaTeX}] (pv) edge[bend right] (pp);
+    \end{tikzpicture}
+    \caption{Protobuf parse validation loop for nested messages.}
+  \end{subfigure}
+  \hspace{1cm}
+  \begin{subfigure}[b]{0.4\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \node[draw] (cp) at (0, 0) {P}; \node[draw] (cv) at (3, 0) {V};
+
+      \draw[-{LaTeX}] (cp) -- (pv);
+    \end{tikzpicture}
+    \caption{CBOR parse validation flow. Tag 24 might require parsing again, but
+    that is expected to be trigger by the host application at a later time.}
+  \end{subfigure}
+
+  \caption{Splitting the Protobuf and CDDL parse process into two steps, parsing
+    and validating.}
+  \label{fig:parse-validate}
+\end{figure}
+
+While I claimed earlier that Protobuf forces Pollux to consider the binary
+encoding blob. Where is that expressed in any of the compatibility relations?
+\emph{It's not.} Basically all of the existing work for Pollux on Protobuf can
+be trivially lifted to operating on the protoscope level just by changing our
+mental framing around it.
 
 \printbibliography{}
 \end{document}
@@ -1172,5 +1312,5 @@ away from similar formats.
 % Local Variables:
 % citar-bibliography: ("./pollux.bib")
 % TeX-command-default: "Make"
-% jinx-local-words: "Everparse proto protobuf protoc"
+% jinx-local-words: "Everparse proto protobuf protoc protoscope"
 % End:

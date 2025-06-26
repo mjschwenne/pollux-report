@@ -1,0 +1,15 @@
+PersonalData = {
+  ? display_name: text,
+  NameComponents,
+  ? age: uint,
+  * $$personaldata-extension
+}
+
+NameComponents = (
+  first_name: text,
+  family_name: text,
+)
+
+$$personaldata-extension //= ( test: text) 
+$$personaldata-extension //= ( shoesize: uint / null)
+
