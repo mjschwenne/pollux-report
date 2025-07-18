@@ -13,6 +13,8 @@ import (
 func main() {
 	var i32i = flag.String("i32i", "", "File name to read a protobuf blob from")
 	var i32o = flag.String("i32o", "", "Output file name for i32 struct")
+	var f32i = flag.String("f32i", "", "File name to read a protobuf blob from")
+	var f32o = flag.String("f32o", "", "Output file name for fixed32 struct")
 	var i64i = flag.String("i64i", "", "File name to read a protobuf blob from")
 	var i64o = flag.String("i64o", "", "Output file name for i64 struct")
 	var u32i = flag.String("u32i", "", "File name to read a protobuf blob from")
@@ -40,6 +42,23 @@ func main() {
 
 		fmt.Printf("i32 encoded value: %d (dec)\n", test.Field)
 		fmt.Printf("i32 encoded value: %064b (bin)\n", uint32(test.Field))
+	}
+
+	if *f32o != "" {
+		test := &gopb.F32{
+			Field: 1,
+		}
+
+		out, err := proto.Marshal(test)
+		if err != nil {
+			log.Fatalln("Failed to encode f32 struct:", err)
+		}
+		if err := os.WriteFile(*f32o, out, 0644); err != nil {
+			log.Fatalln("Failed to write f32 struct to disk:", err)
+		}
+
+		fmt.Printf("f32 encoded value: %d (dec)\n", test.Field)
+		fmt.Printf("f32 encoded value: %064b (bin)\n", test.Field)
 	}
 
 	if *i64o != "" {
@@ -137,6 +156,21 @@ func main() {
 
 		fmt.Printf("i32 encoded value: %064b (bin)\n", uint32(test.Field))
 		fmt.Printf("i32 encoded value: %d (dec)\n", test.Field)
+	}
+
+	if *f32i != "" {
+		in, err := os.ReadFile(*f32i)
+		if err != nil {
+			log.Fatalln("Error reading f32 input file:", err)
+		}
+
+		test := &gopb.F32{}
+		if err := proto.Unmarshal(in, test); err != nil {
+			log.Fatalln("Failed to parse f32 test input:", err)
+		}
+
+		fmt.Printf("f32 encoded value: %064b (bin)\n", test.Field)
+		fmt.Printf("f32 encoded value: %d (dec)\n", test.Field)
 	}
 
 	if *i64i != "" {
