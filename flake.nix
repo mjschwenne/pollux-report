@@ -54,6 +54,7 @@
                   enumitem
                   mathpartir
                   xcolor
+                  tcolorbox
                   bbold
                   ;
               })
