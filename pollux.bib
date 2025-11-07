@@ -14,6 +14,19 @@
   file = {/home/mjs/Zotero/storage/PA5995AF/Ajmani et al. - 2006 - Modular Software Upgrades for Distributed Systems.pdf}
 }
 
+@inproceedings{allaisAgdarsecTotalParser2018,
+  title = {Agdarsec - Total Parser Combinators},
+  shorttitle = {Agdarsec - Total Parser Combinators},
+  author = {Allais, Guillaume},
+  date = {2018-02-12},
+  pages = {45--59},
+  url = {https://gallais.github.io/pdf/agdarsec18.pdf},
+  urldate = {2025-09-03},
+  abstract = {Parser combinator libraries represent parsers as functions and, using higher-order functions, define a DSL of combinators allowing users to quickly put together programs capable of handling complex recursive grammars. When moving to total functional languages such as Agda, these programs cannot be directly ported: there is nothing in the original definitions guaranteeing termination. In this paper, we will introduce a 'guarded' modal operator acting on types and show how it allows us to give more precise types to existing combinators thus guaranteeing totality.},
+  keywords = {higher-order functions,total functional languages,total parser combinators},
+  file = {/home/mjs/Zotero/storage/ES99R23M/Allais - 2018 - Agdarsec - total parser combinators Vingt-neuviemes Journees Francophones des Langages Applicatifs,.pdf}
+}
+
 @standard{ASN1EncodingRules2021,
   title = {{{ASN}}.1 {{Encoding Rules}}: {{Specification}} of {{Basic Encoding Rules}} ({{BER}}), {{Canonical Encoding Rules}} ({{CER}}) and {{Distinguished Encoding Rules}} ({{DER}})},
   date = {2021-04-27},
@@ -25,7 +38,7 @@
 }
 
 @inproceedings{athalyeVerifyingHardwareSecurity2022,
-  title = {Verifying {{Hardware Security Modules}} with \{\vphantom\}{{Information-Preserving}}\vphantom\{\} {{Refinement}}},
+  title = {Verifying {{Hardware Security Modules}} with \{{{Information-Preserving}}\} {{Refinement}}},
   author = {Athalye, Anish and Kaashoek, M. Frans and Zeldovich, Nickolai},
   date = {2022},
   pages = {503--519},
@@ -80,6 +93,20 @@
   file = {/home/mjs/Zotero/storage/RNPK4R8U/Bray - 2017 - The JavaScript Object Notation (JSON) Data Interchange Format.pdf}
 }
 
+@inproceedings{caiVestVerifiedSecure2025a,
+  title = {Vest: {{Verified}}, {{Secure}}, {{High-Performance Parsing}} and {{Serialization}} for {{Rust}}},
+  shorttitle = {Vest},
+  author = {Cai, Yi and Singh, Pratap and Lin, Zhengyao and Bosamiya, Jay and Gancher, Joshua and Surbatovich, Milijana and Parno, Bryan},
+  date = {2025},
+  pages = {6917--6935},
+  url = {https://www.usenix.org/conference/usenixsecurity25/presentation/cai-yi},
+  urldate = {2025-11-07},
+  eventtitle = {34th {{USENIX Security Symposium}} ({{USENIX Security}} 25)},
+  isbn = {978-1-939133-52-6},
+  langid = {english},
+  file = {/home/mjs/Zotero/storage/UY2FDSKM/Cai et al. - 2025 - Vest Verified, Secure, High-Performance Parsing and Serialization for Rust.pdf}
+}
+
 @inproceedings{chajedArgosyVerifyingLayered2019,
   title = {Argosy: Verifying Layered Storage Systems with Recovery Refinement},
   shorttitle = {Argosy},
@@ -119,12 +146,29 @@
   type = {Blog},
   title = {Research!Rsc: {{Go Data Structures}}: {{Interfaces}}},
   author = {Cox, Russ},
-  date = {2009-12-01},
+  date = {2009-01-12},
   url = {https://research.swtch.com/interfaces},
   urldate = {2025-05-26},
   langid = {english},
   organization = {research!rsc},
   file = {/home/mjs/Zotero/storage/9KRJ3GFS/Cox - 2009 - research!rsc Go Data Structures Interfaces.pdf}
+}
+
+@article{delawareNarcissusCorrectbyconstructionDerivation2019,
+  title = {Narcissus: Correct-by-Construction Derivation of Decoders and Encoders from Binary Formats},
+  shorttitle = {Narcissus},
+  author = {Delaware, Benjamin and Suriyakarn, Sorawit and Pit-Claudel, Clément and Ye, Qianchuan and Chlipala, Adam},
+  date = {2019-07-26},
+  journaltitle = {Virtual machine and source code for Narcissus: Correct-by-Construction Derivation of Decoders and Encoders from Binary Formats},
+  shortjournal = {Proc. ACM Program. Lang.},
+  volume = {3},
+  pages = {82:1--82:29},
+  doi = {10.1145/3341686},
+  url = {https://dl.acm.org/doi/10.1145/3341686},
+  urldate = {2025-11-07},
+  abstract = {It is a neat result from functional programming that libraries of parser combinators can support rapid construction of decoders for quite a range of formats. With a little more work, the same combinator program can denote both a decoder and an encoder. Unfortunately, the real world is full of gnarly formats, as with the packet formats that make up the standard Internet protocol stack. Most past parser-combinator approaches cannot handle these formats, and the few exceptions require redundancy – one part of the natural grammar needs to be hand-translated into hints in multiple parts of a parser program. We show how to recover very natural and nonredundant format specifications, covering all popular network packet formats and generating both decoders and encoders automatically. The catch is that we use the Coq proof assistant to derive both kinds of artifacts using tactics, automatically, in a way that guarantees that they form inverses of each other. We used our approach to reimplement packet processing for a full Internet protocol stack, inserting our replacement into the OCaml-based MirageOS unikernel, resulting in minimal performance degradation.},
+  issue = {ICFP},
+  file = {/home/mjs/Zotero/storage/DLEFKXGN/Delaware et al. - 2019 - Narcissus correct-by-construction derivation of decoders and encoders from binary formats.pdf}
 }
 
 @thesis{driscoll2013checking,
@@ -151,6 +195,15 @@
   langid = {english},
   keywords = {Application Server,Atomic Operation,Enterprise System,Latent Error,Software Defect},
   file = {/home/mjs/Zotero/storage/NG7QKU3H/Dumitraş and Narasimhan - 2009 - Why Do Upgrades Fail and What Can We Do about It.pdf}
+}
+
+@inproceedings{elsman2005type,
+  title = {Type-Specialized Serialization with Sharing.},
+  booktitle = {Trends in Functional Programming},
+  author = {Elsman, Martin},
+  date = {2005},
+  pages = {47--62},
+  file = {/home/mjs/Zotero/storage/SL45TK32/Elsman - 2005 - Type-specialized serialization with sharing..pdf}
 }
 
 @online{Encoding,
@@ -275,6 +328,17 @@
   file = {/home/mjs/Zotero/storage/S6LPG6R9/Habib et al. - 2021 - Finding data compatibility bugs with JSON subschema checking.pdf}
 }
 
+@report{huttonMonadicParserCombinators1996,
+  title = {Monadic {{Parser Combinators}}},
+  author = {Hutton, Graham and Meijer, Erik},
+  date = {1996},
+  number = {NOTTCS-TR-96-4},
+  institution = {University of Nottingham},
+  url = {https://cspages.ucalgary.ca/~robin/class/521/class-handout.pdf#page=282},
+  langid = {english},
+  file = {/home/mjs/Zotero/storage/NVF439BW/class-handout.pdf}
+}
+
 @inproceedings{kohInteractionTreesSpecifying2019,
   title = {From {{C}} to Interaction Trees: Specifying, Verifying, and Testing a Networked Server},
   shorttitle = {From {{C}} to Interaction Trees},
@@ -392,8 +456,8 @@
 }
 
 @inproceedings{ramananandroEverParseVerifiedSecure2019,
-  title = {\{\vphantom\}{{EverParse}}\vphantom\{\}: {{Verified Secure}} \{\vphantom\}{{Zero-Copy}}\vphantom\{\} {{Parsers}} for {{Authenticated Message Formats}}},
-  shorttitle = {\{\vphantom\}{{EverParse}}\vphantom\{\}},
+  title = {\{{{EverParse}}\}: {{Verified Secure}} \{{{Zero-Copy}}\} {{Parsers}} for {{Authenticated Message Formats}}},
+  shorttitle = {\{{{EverParse}}\}},
   author = {Ramananandro, Tahina and Delignat-Lavaud, Antoine and Fournet, Cédric and Swamy, Nikhil and Chajed, Tej and Kobeissi, Nadim and Protzenko, Jonathan},
   date = {2019},
   pages = {1465--1482},
