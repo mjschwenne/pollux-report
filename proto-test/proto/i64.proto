@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-option go_package = "./gopb";
-
-message i64 {
-  int64 Field = 1;
-}

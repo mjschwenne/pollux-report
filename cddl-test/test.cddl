@@ -1,3 +1,0 @@
-Person = {
-    first_name: text
-}

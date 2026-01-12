@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-option go_package = "./gopb";
-
-message u32 {
-  uint32 Field = 1;
-}

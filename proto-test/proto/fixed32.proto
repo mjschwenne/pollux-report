@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-option go_package = "./gopb";
-
-message f32 {
-  fixed32 Field = 1;
-}

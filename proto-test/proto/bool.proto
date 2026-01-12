@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-option go_package = "./gopb";
-
-message bool {
-  bool Field = 1;
-}
