@@ -56,6 +56,8 @@
                   xcolor
                   tcolorbox
                   bbold
+                  minted
+                  upquote
                   ;
               })
             ];

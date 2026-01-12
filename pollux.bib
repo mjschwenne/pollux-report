@@ -528,6 +528,22 @@
   file = {/home/mjs/Zotero/storage/SZJQHWJL/Swamy et al. - 2023 - Proof-oriented programming in F.pdf}
 }
 
+@article{wagnerRealisticRealizabilitySpecifying2024,
+  title = {Realistic {{Realizability}}: {{Specifying ABIs You Can Count On}}},
+  shorttitle = {Realistic {{Realizability}}},
+  author = {Wagner, Andrew and Eisbach, Zachary and Ahmed, Amal},
+  date = {2024-10-08},
+  journaltitle = {Proc. ACM Program. Lang.},
+  volume = {8},
+  pages = {315:1249--315:1278},
+  doi = {10.1145/3689755},
+  url = {https://dl.acm.org/doi/10.1145/3689755},
+  urldate = {2025-11-19},
+  abstract = {The Application Binary Interface (ABI) for a language defines the interoperability rules for its target platforms, including data layout and calling conventions, such that compliance with the rules ensures “safe” execution and perhaps certain resource usage guarantees. These rules are relied upon by compilers, libraries, and foreign-function interfaces. Unfortunately, ABIs are typically specified in prose, and while type systems for source languages have evolved, ABIs have comparatively stalled, lacking advancements in expressivity and safety.                We propose a vision for richer, semantic ABIs to improve interoperability and library integration, supported by a methodology for formally specifying ABIs using realizability models. These semantic ABIs connect abstract, high-level types to unwieldy, but well-behaved, low-level code. We illustrate our approach with a case study formalizing the ABI of a functional source language in terms of a reference-counting implementation in a C-like target language. A key contribution supporting this case study is a graph-based model of separation logic that captures the ownership and accessibility of reference-counted resources using modalities inspired by hybrid logic. To highlight the flexibility of our methodology, we show how various design decisions can be interpreted into the semantic ABI. Finally, we provide the first formalization of library evolution, a distinguishing feature of Swift’s ABI.},
+  issue = {OOPSLA2},
+  file = {/home/mjs/Zotero/storage/A2NGSAQ2/Wagner et al. - 2024 - Realistic Realizability Specifying ABIs You Can Count On.pdf}
+}
+
 @report{wrightJSONSchemaMedia2022,
   type = {Internet Draft},
   title = {{{JSON Schema}}: {{A Media Type}} for {{Describing JSON Documents}}},
@@ -540,6 +556,38 @@
   urldate = {2025-06-25},
   abstract = {JSON Schema defines the media type "application/schema+json", a JSON- based format for describing the structure of JSON data. JSON Schema asserts what a JSON document must look like, ways to extract information from it, and how to interact with it. The "application/ schema-instance+json" media type provides additional feature-rich integration with "application/schema+json" beyond what can be offered for "application/json" documents.},
   pagetotal = {78}
+}
+
+@inproceedings{xiaComposingBidirectionalPrograms2019,
+  title = {Composing {{Bidirectional Programs Monadically}}},
+  booktitle = {Programming {{Languages}} and {{Systems}}},
+  author = {Xia, Li-yao and Orchard, Dominic and Wang, Meng},
+  editor = {Caires, Luís},
+  date = {2019},
+  pages = {147--175},
+  publisher = {Springer International Publishing},
+  location = {Cham},
+  doi = {10.1007/978-3-030-17184-1_6},
+  abstract = {Software frequently converts data from one representation to another and vice versa. Naïvely specifying both conversion directions separately is error prone and introduces conceptual duplication. Instead, bidirectional programming techniques allow programs to be written which can be interpreted in both directions. However, these techniques often employ unfamiliar programming idioms via restricted, specialised combinator libraries. Instead, we introduce a framework for composing bidirectional programs monadically, enabling bidirectional programming with familiar abstractions in functional languages such as Haskell. We demonstrate the generality of our approach applied to parsers/printers, lenses, and generators/predicates. We show how to leverage compositionality and equational reasoning for the verification of round-tripping properties for such monadic bidirectional programs.},
+  isbn = {978-3-030-17184-1},
+  langid = {english},
+  file = {/home/mjs/Zotero/storage/4BCAWUFM/Xia et al. - 2019 - Composing Bidirectional Programs Monadically.pdf}
+}
+
+@online{xiaComposingBidirectionalPrograms2019a,
+  title = {Composing Bidirectional Programs Monadically (with Appendices)},
+  author = {Xia, Li-yao and Orchard, Dominic and Wang, Meng},
+  date = {2019-02-19},
+  eprint = {1902.06950},
+  eprinttype = {arXiv},
+  eprintclass = {cs},
+  doi = {10.48550/arXiv.1902.06950},
+  url = {http://arxiv.org/abs/1902.06950},
+  urldate = {2025-11-24},
+  abstract = {Software frequently converts data from one representation to another and vice versa. Naively specifying both conversion directions separately is error prone and introduces conceptual duplication. Instead, bidirectional programming techniques allow programs to be written which can be interpreted in both directions. However, these techniques often employ unfamiliar programming idioms via restricted, specialised combinator libraries. Instead, we introduce a framework for composing bidirectional programs monadically, enabling bidirectional programming with familiar abstractions in functional languages such as Haskell. We demonstrate the generality of our approach applied to parsers/printers, lenses, and generators/predicates. We show how to leverage compositionality and equational reasoning for the verification of round-tripping properties for such monadic bidirectional programs.},
+  pubstate = {prepublished},
+  keywords = {Computer Science - Programming Languages},
+  file = {/home/mjs/Zotero/storage/D9ZUV7KI/Xia et al. - 2019 - Composing bidirectional programs monadically (with appendices).pdf;/home/mjs/Zotero/storage/8AUA3B5P/1902.html}
 }
 
 @article{xiaInteractionTreesRepresenting2019,
@@ -557,6 +605,23 @@
   abstract = {Interaction trees (ITrees) are a general-purpose data structure for representing the behaviors of recursive programs that interact with their environments. A coinductive variant of “free monads,” ITrees are built out of uninterpreted events and their continuations. They support compositional construction of interpreters from event handlers, which give meaning to events by defining their semantics as monadic actions. ITrees are expressive enough to represent impure and potentially nonterminating, mutually recursive computations, while admitting a rich equational theory of equivalence up to weak bisimulation. In contrast to other approaches such as relationally specified operational semantics, ITrees are executable via code extraction, making them suitable for debugging, testing, and implementing software artifacts that are amenable to formal verification. We have implemented ITrees and their associated theory as a Coq library, mechanizing classic domain- and category-theoretic results about program semantics, iteration, monadic structures, and equational reasoning. Although the internals of the library rely heavily on coinductive proofs, the interface hides these details so that clients can use and reason about ITrees without explicit use of Coq’s coinduction tactics. To showcase the utility of our theory, we prove the termination-sensitive correctness of a compiler from a simple imperative source language to an assembly-like target whose meanings are given in an ITree-based denotational semantics. Unlike previous results using operational techniques, our bisimulation proof follows straightforwardly by structural induction and elementary rewriting via an equational theory of combinators for control-flow graphs.},
   issue = {POPL},
   file = {/home/mjs/Zotero/storage/SD64ZBRF/Xia et al. - 2019 - Interaction trees representing recursive and impure programs in Coq.pdf}
+}
+
+@article{xieBiparsersExactPrinting2025,
+  title = {Biparsers: {{Exact Printing}} for {{Data Synchronisation}}},
+  shorttitle = {Biparsers},
+  author = {Xie, Ruifeng and Schrijvers, Tom and Hu, Zhenjiang},
+  date = {2025-01-09},
+  journaltitle = {Artifact for POPL'25: Biparsers: Exact Printing for Data Synchronisation},
+  shortjournal = {Proc. ACM Program. Lang.},
+  volume = {9},
+  pages = {74:2205--74:2231},
+  doi = {10.1145/3704910},
+  url = {https://dl.acm.org/doi/10.1145/3704910},
+  urldate = {2025-11-24},
+  abstract = {Parsers and printers are vital for data synchronisation between different serialisation formats. As they are tightly related, much research has been devoted to showing that both can be derived from a single definition. It, however, turns out to be challenging to extend this work with exact-printing, which recovers the original source text for the parsed data. In this paper, we propose a new approach to tackling the challenge that considers a parser-printer pair as a mechanism to synchronize the input text string with the data, and formalizes them as a bidirectional program (lens). We propose the first biparser framework to support exact-printing with non-injective parsers, provide a library of combinators for common patterns, and demonstrate its usefulness with biparsers for subsets of JSON and YAML.},
+  issue = {POPL},
+  file = {/home/mjs/Zotero/storage/J8H75NLI/Xie et al. - 2025 - Biparsers Exact Printing for Data Synchronisation.pdf}
 }
 
 @inproceedings{yeVerifiedProtocolBuffer2019,
