@@ -15,7 +15,7 @@ ps : $(ALL_PS)
 
 
 %.pdf: %.tex
-	latexmk -lualatex $*.tex
+	latexmk -lualatex -shell-escape $*.tex
 
 %.dvi : %.tex
 	latexmk -dvi $*.tex 
@@ -26,6 +26,7 @@ ps : $(ALL_PS)
 clean:
 	latexmk -c
 	rm pollux.pdf
+	latexmk -c ./sections
 # cleans everything but the .tex and .pdf (or eventually .dvi or .ps)
 
 mrproper: clean

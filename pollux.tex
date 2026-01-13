@@ -30,6 +30,8 @@
 \usepackage{stmaryrd}
 \usepackage[backend=biber,sorting=ynt]{biblatex}
 \usepackage{subfiles}
+\usepackage{xpatch}
+
 \addbibresource{pollux.bib}
 \author{Matt Schwennesen}
 \title{Pollux: Parser Compatibility Checking}
@@ -116,6 +118,9 @@
 
 \section{Evaluation Data}
 \subfile{sections/eval}
+
+\section{Simple Parsing}
+\subfile{sections/simpl-parse}
 
 \printbibliography{}
 \end{document}
