@@ -20,34 +20,29 @@ format designed to help establish the reasoning principles at play here.
 \subsection{Descriptor Definition}
 
 \begin{minted}{coq}
-(* A field can be either an integer or a Boolean *)
-Inductive FieldDesc : Set :=
-| D_INT
-| D_BOOL.
-
 (* A descriptor is either a base field, or two nested descriptors. *)
 Inductive Desc : Set :=
-| D_BASE (n : string) (f : FieldDesc)
+| D_BOOL
+| D_INT
 | D_NEST (d1 : Desc) (d2 : Desc).
+
+Inductive Val : Set :=
+| V_BOOL (b : bool) : Val
+| V_INT (i : Z) : Val
+| V_NEST (v1 : Val) (v2 : Val) : Val.
 \end{minted}
 
 This is intentionally a simple format, so that we can focus on working with
-nested descriptors. A descriptor describes the type we'll use for a message as
-well, defined by these two functions which compute a tuple type.
+nested descriptors. However, it is possible to build a descriptor for inspecting
+only a value and we could write a function which initializing an ``empty''
+descriptor given the close correspondence between them.
 
 \begin{minted}{coq}
-Definition FDescTy (f : FieldDesc) : Set :=
-  match f with
-  | D_INT => Z
-  | D_BOOL => bool
-  end.
-
-(* A value corresponding to some descriptor is a large tuple, using names as
-   strings and values as either ints or bools, respectively. *)
-Fixpoint Denote (d : Desc) : Set :=
-  match d with
-  | D_BASE n f => string * FDescTy f
-  | D_NEST d1 d2 => (prod (Denote d1) (Denote d2))
+Fixpoint Schema (v : Val) : Desc :=
+  match v with
+  | V_BOOL _ => D_BOOL
+  | V_INT _ => D_INT
+  | V_NEST v1 v2 => D_NEST (Schema v1) (Schema v2)
   end.
 \end{minted}
 
@@ -79,30 +74,31 @@ message takes and then the encoded message.
 
 \subsection{Parsing \& Serializing}
 
-An implicitly well-typed parser and serializer can be found on the Pollux GitHub
-as \verb|src/SimplParse.v|. I will not be listing all the code here. In this
-case, implicitly well-typed means that we have the final parser type as
-$\mathtt{parse}\ (d : Desc)\ :\ \mathtt{Parser}\;\llbracket d \rrbracket$.  
-This is considered implicitly well-typed since we know that the result of
-calling the resulting parser will always return a tuple constructed to exactly
-match the structure of the input descriptor.
-
-We believe that we will need to move to an explicitly well-typed parser setup to
-scale to a format as complex as Protobuf. Under that setup, the type of the
-top-level parser would be $\mathtt{parse}\ (d : Desc)\ :\ \mathtt{Parser}\
-\mathtt{Doc}$ for some generic, universal document model \texttt{Doc}. We'd also
-need to provide a theorem standing that ``if \texttt{parse d enc} $\leadsto$ $x$ then
+There has been some discussion about implicitly well-typed or explicitly
+well-typed parsers. In this case, implicitly well-typed means that we have the
+final parser type as
+$\mathtt{parse}\ (d : Desc)\ :\ \mathtt{Parser}\;\llbracket d \rrbracket$ while
+an explicitly well-typed parser setup would have the top-level type of
+$\mathtt{parse}\ (d : Desc)\ :\ \mathtt{Parser}\ \mathtt{Val}$ for some generic,
+universal document model \texttt{Val}. We'd also need to provide a theorem
+standing that ``if \texttt{parse d enc} $\leadsto$ $x$ then
 $\vdash_{\mathrm{doc}} x\ :\ d$'', basically that if calling \texttt{parse} on an
 encoding returns a result, the structure of that result will be well-typed under
 some document type system.
 
-That is currently future work.
+The current implementation is closer to being explicitly well-typed, as evident
+from the descriptor and value definitions above, however the typing theorem has
+not been formally stated or proved. Also notice that the current parser /
+serializer doesn't require a descriptor to parser or serializer any value, since
+all the required information is encoded in the value or the binary encoding
+itself.
 
 \subsection{Correctness Proofs}
 
 In order to focus on the inductive nature of the final message proof, I will
 assume that the integer parser / serializer has been proven correct, as well as
-a number of the intermediate parser / serializer pairs. 
+a number of the intermediate parser / serializer pairs. The Boolean parser /
+serializer and the byte parser / serializer have been formally proved.
 
 \begin{theorem}[Simple Parse Correctness]
   \begin{multline*}
@@ -114,20 +110,203 @@ a number of the intermediate parser / serializer pairs.
 
 \begin{proof}
   We will proceed using induction on the descriptor. If a numeric measure is
-  needed, that can be derived as the depth of the deepest nested
-  descriptor. Consider first the base case there the input descriptor is
-  \verb|D_BASE|. There are two sub-cases to consider, one for each type of base
-  descriptor.
-  \begin{itemize}
-  \item \emph{Integer}. We unfold the serializer and match on the \verb|D_INT|
-    descriptor to reduce down to
-    \verb|SerialConcat SerialTags SerialZ4 (D_BASE n D_INT, (snd v))|. We
-    know that the input value \texttt{v} is of type \texttt{Denote D\_BASE n
-      D\_INT} or, equivalently, \texttt{String *} $\mathbb{Z}$, \texttt{snd v} will be
-    an integer. We can use the correctness theorem for the \verb|SerialConcat|
-    parser combinator (which is proved separately in the Rocq development). 
-  \end{itemize}
+  needed, that can be derived as the depth of the deepest nested descriptor,
+  which is actually how the recursive combinator works.
+
+  First, we may assume that the value to be serialized is well-formed. The
+  well-formed condition, $wf$, states that each integer embedded in a
+  \texttt{Val} is within the range $0 \le z < 2^{32}$ and that both ``tags'' for
+  the \texttt{Val} fit within one byte, i.e. $0 \le t < 256$. 
+
+  Consider first the base case there the input \texttt{Val} is
+  \verb|V_INT z|. We unfold the serializer and are presented with a
+  \texttt{SerialBind} combinator, which is designed to apply the outer tag (in
+  this case 0) as a prefix to the payload. Continuing to unfold, we're presented
+  with another \texttt{SerialBind} which applies the inner tag (also 0 in this
+  case) before encoding the integer itself. Thus, we know that the encoding
+  $enc$ can be broken down as $0 :: 0 :: enc_z$ where we have two explicit tags
+  and the integer encoding, learning along the way that
+  $\mathtt{SerialZ}_{32}\ z = \mathtt{Success}\ enc_z$. On the parsing side, we
+  first parse the outer tag, 0, then the inner tag to reduce the parser to
+  \texttt{Map ParseZ$_{32}$ ($\lambda$ z $\Rightarrow$ V\_INT z)} called on $enc_z$. By the
+  correctness of the integer parser / serializer pair, \texttt{ParseZ$_{32}$}
+  will correctly parser \texttt{z} and the simple mapping function fully
+  recovers \texttt{V\_INT z}. Observe that we meet the well-formed condition for
+  the integer parsers because the value well-formed condition also limits the
+  range of integers to an appropriate value.
+
+  The second base case works the same, except it uses the Boolean parser /
+  serializer rather than the integer one.
+
+  Now we come to the difficult case, the inductive case were \texttt{v = V\_NEST
+    v$_1$ v$_2$}. The parsing chain starts off the same has the base cases, with
+  the serialization of the outer tag (which is 1), before proceeding to the
+  inner tag, which is the length of the payload. By the well-formed condition,
+  we assume that this is less than 256, meaning it can be successfully encoded
+  into one byte. In the inductive case, we also have access to two inductive
+  hypotheses, 
+  \begin{multline*}
+    \forall\;enc,\;rest. wf\;v_1 \rightarrow \mathtt{SerialVal}\ v_1 =
+    \mathtt{SerialSuccess}\ enc_1 \rightarrow \\
+    \mathtt{ParseVal}\ (enc_1\;++\;rest) = \mathtt{ParseSuccess}\ v_1\ rest
+    \tag{IH$_1$}
+  \end{multline*}
+  \begin{multline*}
+    \forall\;enc,\;rest. wf\;v_2 \rightarrow \mathtt{SerialVal}\ v_2 =
+    \mathtt{SerialSuccess}\ enc_2 \rightarrow \\
+    \mathtt{ParseVal}\ (enc_2\;++\;rest) = \mathtt{ParseSuccess}\ v_2\ rest
+    \tag{IH$_2$}
+  \end{multline*}
+  At this point, the serializer we're left with is \texttt{SerialConcat
+    SerialVal SerialVal (v$_1$, v$_2$)}. (I'm currently eliding the fact that
+  this process is actually happening in the \texttt{Recursive} serializer
+  combinator, so the serializer we're dealing with takes a serializer which is
+  presumed to behave like \texttt{SerialVal}). Either way, we know via
+  assumption that the \texttt{SerialConcat} parser must succeed, since otherwise
+  the original \texttt{SerialVal} call would fail, so by the inversion lemma on
+  \texttt{SerialConcat}, we also know that \texttt{SerialVal v$_1$} and
+  \texttt{SerialVal v$_2$} must succeed. Furthermore, there exists two encoding
+  blobs such that
+  \[ \mathtt{SerialVal}\ \mathtt{v}_1 = \mathtt{Success}\ enc_1 \wedge
+    \mathtt{SerialVal}\ \mathtt{v}_2 = \mathtt{Success}\ enc_2 \wedge enc = enc_1 ++
+    enc_2 \]
+  With these facts, we can apply each inductive hypothesis with the correct
+  instantiation of $rest$ to learn that 
+  \[ \mathtt{ParseVal}\ enc_1 ++ (enc_2 ++ rest) = \mathtt{Success}\ v_1\
+    (enc_2 ++ rest) \]
+  And 
+  \[ \mathtt{ParseVal}\ enc_2 ++ rest = \mathtt{Success}\ v_2\ rest \]
+  On the parsing side, we follow the same argument as before with the two tags.
+  (Actually, the inner tag is used to length limit the parsing of the two nested
+  values, although I think this isn't needed for this format. It will be
+  required for others).
+
+  Similarly to the base cases, we reduce the parser, via the correctness of the
+  matched \texttt{ParseBind} and \texttt{SerialBind}, down to \texttt{Map
+    (ParseConcat ParseVal ParseVal) ($\lambda$ vs $\Rightarrow$ let (v$_1$, v$_2$) := vs in
+    V\_NEST v$_1$ v$_2$)}. Since \texttt{V\_NEST v$_1$ v$_2$} is the input value
+  we're trying to recover, it's clear that if the input parser to \texttt{Map}
+  produces \texttt{(v$_1$, v$_2$)} the mapping function will produce a correct
+  final result. Thus we only concern ourselves with the correctness of
+  \texttt{ParseConcat ParseVal ParseVal (enc$_1$ ++ enc$_2$)}. Since we don't
+  have the top-level theorem that \texttt{ParseOk ParseVal SerialVal} (which is
+  what we're actively trying to prove), we cannot use the Concat correctness
+  theorem. Instead, unfold the \texttt{ParseConcat} combinator, which starts
+  with a call \texttt{ParseVal enc$_1$ ++ (enc$_2$ ++ rest)}. We already know
+  this succeeds, producing a call to the right parser on the remaining data,
+  \texttt{ParseVal enc$_2$ ++ rest}. Using the result of the other inductive
+  hypothesis, that also success and returns \texttt{(v$_1$, v$_2$)} as
+  needed. Thus, the whole parser is correct.
 \end{proof}
+
+Some notes on the above proof.
+\begin{itemize}
+\item Some lemmas I apply have not been formally proven, but a lot of them
+  have. Ones that I've proved include the concat inversion lemma, the bind
+  combinator correctness lemma and the like.
+\item This proof proceeded using induction directly on the input
+  \texttt{Val}. That's not how the serializer is written, although I have
+  written versions of it where this is the case. In reality, the implementation
+  is using the recursive parser / serializer. This is critical on the parsing
+  side since it isn't clear that the recursive calls are structurally
+  inductive. While it might be possible to flatten the parser out for a format
+  this simple, that's something which will not scale so an alternative solution
+  is required. The actual recursive combinator uses well-founded induction on
+  the length of the encoding being parsed, and likewise the recursive serializer
+  uses well-founded induction on the depth of the value being serialized. This
+  is provided via a function argument, and intuitively, if we think of a
+  \texttt{Val} as a binary tree with primitive values in the leaves, this is the
+  height of the current tree. Both combinator implementations are ``safe'' in
+  the sense that they explicitly check that the measure is decreasing before
+  making a recursive call, causing an error otherwise. Even with the definition
+  of \texttt{SerialVal} which doesn't use the recursive combinator, the proof
+  would get stuck when having to deal with the recursive parse combinator. 
+\item This gets even more tricky if the descriptor is required to serialize or
+  parse the data. The na\"\i{}ve statement of the top-level correctness
+  statement, something to the effect of \texttt{$\forall$ (d : Desc), ParseOk
+    (ParseVal d) (SerialVal d)} is ineffective since we don't have mechanisms to
+  facilitate the change of descriptor during the recursive calls at the moment. 
+\end{itemize}
+
+\subsection{Recursive Combinator}
+
+Consider the current recursive combinator for parsing. 
+
+\begin{minted}{coq}
+Program Fixpoint par_recur {R : Type} (underlying : Parser R -> Parser R)
+(inp : Input) {measure (Length inp)} : ParseResult R :=
+  underlying (fun rem => match decide ((Length rem) < (Length inp)) with
+                      | left _ => par_recur underlying rem
+                      | right _ => RecursiveProgressError "Parser.Recursive" inp
+                                     rem
+                      end) inp.
+Next Obligation.
+  apply measure_wf.
+  apply lt_wf.
+Defined.
+
+Definition ParseRecursive {R : Type} (underlying : Parser R -> Parser R) : Parser R :=
+  fun inp => par_recur underlying inp.
+\end{minted}
+
+Where \texttt{RecursiveProgressError} just checks if the measure didn't make
+progress or actually increased to tailor the error message.
+
+This is extremely similar to the recursive serializer, 
+
+\begin{minted}{coq}
+Program Fixpoint ser_recur {R : Type} {wfo : R -> Prop}
+  (underlying : Serializer R wfo -> Serializer R wfo)
+  (depth : R -> nat) (r : R) {measure (depth r)} : SerializeResult :=
+  underlying (fun r__next => match decide ((depth r__next) < (depth r)) with
+                        | left _ => ser_recur underlying depth r__next
+                        | right _ => SerialRecursiveProgressError "Serializer.Recursive"
+                                       depth r r__next
+                        end) r.
+Next Obligation.
+  apply measure_wf.
+  apply lt_wf.
+Defined.
+
+Definition SerialRecursive {R : Type} {wf : R -> Prop}
+  (underlying : Serializer R wf -> Serializer R wf) depth : Serializer R wf :=
+  ser_recur underlying depth.
+\end{minted}
+
+In fact, I would argue that the recursive parser is structurally an instance of
+the serializer were the depth function is the length of the remaining
+input. After all, the length of a list can be though of as the depth of nested
+\texttt{Cons} constructors. The two definitions need to be separate only as a
+technical consideration to the fact that a \texttt{Serializer R wf} and
+\texttt{Parser R} aren't actually the same type.
+
+I think that the correctness statement of these definitions isn't obvious, but
+there is clearly some link between them. What I've currently settled on (with
+some input for an LLM) is a statement that looks like this:
+\begin{multline*}
+(\forall\;p\;s.\ \mathtt{ParseOk}\ p\ s \to \mathtt{ParseOk}\ (u_p\;p)\ (u_s\;s)) \rightarrow \\
+  \mathtt{ParseOk}\ (\mathtt{ParseRecursive}\;u_p)\ (\mathtt{SerialRecursive}\;u_s\;depth)
+\end{multline*}
+Recalling that the underlying parser and serializer have a hole in them, this
+hypothesis claims that if those underlying parser and serializer behave the same
+whenever the holes are filled with a matching parser / serializer pair then the
+behavior of them when wrapped in the recursive combinator will be correct.
+
+While this isn't something that I have proved yet, I did write this out as an
+admitted theorem and am in the progress of using it in an attempt to prove the
+correctness of the simpler parser. While that proof isn't complete at the time
+of this writing, it is something that I believe I can prove. I've already solved
+the two base cases and am currently working on reasoning about the
+length-limiting behavior of a few other combinators as the last step.
+
+I also don't know if the statement as written can be proved for these recursive
+definitions. Working with \texttt{Program Fixpoint} functions seems to be
+\emph{difficult}, and I may need to write and prove a rewriting theorem first to
+contain the complexity of the underlying definitions automatically generated by
+Rocq. An alternative is to try and use an \texttt{Equations} version, which I
+have for the parser implementation and could easily write for the
+serializer. That should provide some better reasoning principles for these
+definitions.
 
 \end{document}
 
