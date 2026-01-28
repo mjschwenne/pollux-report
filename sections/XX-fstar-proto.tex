@@ -1,6 +1,5 @@
-\documentclass[../pollux.tex]{subfiles}
+\section{\fstar{} Protobuf Representation}
 
-\begin{document}
 In order to reason about Protobuf compatibility, we need a way to represent both
 Protobuf values and descriptors. While the goal here isn't \emph{technically} to
 implement a Protobuf serializer and parser in \fstar{}, that is a natural step
@@ -204,4 +203,8 @@ Several shorthands arise from this, namely $parse_d : \mathtt{Bytes} \rightarrow
 	\llbracket d \rrbracket$ for the partial application of a descriptor $d$ to
 $parse$. The same thing can be done for $serialize_d : \llbracket d \rrbracket \rightarrow
 	\mathtt{Bytes}$, which naturally become more traditional definitions of a parser and serializer.
-\end{document}
+
+% Local Variables:
+% citar-bibliography: ("../pollux.bib")
+% TeX-master: "../pollux.tex"
+% End:

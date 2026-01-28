@@ -28,7 +28,6 @@ pollux.pdf: pollux.tex $(SECTIONS)
 clean:
 	latexmk -c
 	rm pollux.pdf
-	latexmk -c ./sections
 # cleans everything but the .tex and .pdf (or eventually .dvi or .ps)
 
 mrproper: clean

@@ -1,15 +1,4 @@
-\documentclass[../pollux.tex]{subfiles}
-
-\makeatletter
-% fix for first kind
-\xpatchcmd\inputminted
-  {\minted@pygmentize[#3]{#2}}
-  {\minted@pygmentize[\import@path #3]{#2}}
-  {}{\fail}
-
-\makeatother
-
-\begin{document}
+\section{Simple Parsing}
 
 Despite being a ``simple'' format by the standard of many other real-world
 encoding formats, Protobuf still has a lot of features that need to be modeled,
@@ -308,10 +297,7 @@ have for the parser implementation and could easily write for the
 serializer. That should provide some better reasoning principles for these
 definitions.
 
-\end{document}
-
 % Local Variables:
-% citar-bibliography: ("./pollux.bib")
+% citar-bibliography: ("../pollux.bib")
 % TeX-main-file: "../pollux.tex"
-% jinx-local-words: "Everparse proto protobuf protoc protoscope"
 % End:

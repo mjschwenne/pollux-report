@@ -1,6 +1,5 @@
-\documentclass[../pollux.tex]{subfiles}
+\section{Protobuf Primer}~\label{sec:proto}
 
-\begin{document}
 Protobuf, or protocol buffers, is a message description language and
 serialization protocol developed by Google. It is similar to other descriptive
 data formats like ASN1, and is commonly used as part of the gRPC remote
@@ -296,4 +295,8 @@ While the zig-zag encoding does save space for smaller negative values in
 particular, it does increase the amount of space required to encode large
 positive values, which is why it isn't the standard encoding for signed
 integers. 
-\end{document}
+
+% Local Variables:
+% citar-bibliography: ("../pollux.bib")
+% TeX-master: "../pollux.tex"
+% End:

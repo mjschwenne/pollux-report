@@ -1,6 +1,5 @@
-\documentclass[../pollux.tex]{subfiles}
+\section{Protobuf Compatibility Definitions}
 
-\begin{document}
 \begin{definition}[Encoding Field]
 	An encoding field is a tuple $(id, tag, value)$ which encodes the field
 	number, tag and value of one field of a proto descriptor.
@@ -498,4 +497,8 @@ The main field-level compatibility theorem is stated below.
   $\mathtt{parse}_{d_1}\ bs = \mathtt{Some}\ v_1$, $\mathtt{parse}_{d_2}\ bs =
   \mathtt{Some}\ v_2$ and $v_1 \prec v_2$
 \end{theorem}
-\end{document}
+
+% Local Variables:
+% citar-bibliography: ("../pollux.bib")
+% TeX-master: "../pollux.tex"
+% End:
