@@ -78,11 +78,11 @@ message.
 
 The value relation is the base level of the compatibility relations, relating
 just two individual values. Protobuf values are modeled here as a specification
-level type in \fstar{} associated with a protobuf type as listed in
+level type in Rocq associated with a protobuf type as listed in
 Table~\ref{tab:val-spec}. Finally, while protobuf decorators are technically
 part of the field level specification, they have been incorporated into the type
 information to allow the specification type into include \texttt{option} or
-\texttt{list} \fstar{} types.
+\texttt{list} Rocq types.
 
 \begin{table}[H]
 	\centering
@@ -94,15 +94,15 @@ information to allow the specification type into include \texttt{option} or
             \texttt{int64}, \texttt{uint64}, \texttt{sint64} \\
       $\mathbb{B}$ & \texttt{bool}    \\
       \texttt{string} & \texttt{string}    \\
-      \texttt{list char}  & \texttt{bytes}    \\
+      \texttt{list w8}  & \texttt{bytes}    \\
       -- & \texttt{float}, \texttt{double} \\
       \bottomrule
 	\end{tabular}
 
 	\vspace{4mm}
-	\caption[]{Description of the \fstar{} type corresponding to each protobuf
-      type. Since \fstar{} doesn't support any type of floating point number,
-      specification types cannot be provided for floating point protobuf types.}\label{tab:val-spec}
+	\caption[]{Description of the Rocq type corresponding to each protobuf
+      type. Since Rocq has poor floating point number support, we've elected to
+      omit those from consideration.}\label{tab:val-spec}
 \end{table}
 
 \begin{definition}[Value Relation]
@@ -400,6 +400,9 @@ recorded in the encoded message, they are currently allowed to freely change.
   \infer[Field-Type]{\tau_1 \propto \tau_2}{\msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau_1}\})} \preceq
     \msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau_2}\})}}
 
+  \infer[Field-Add]{id \not \in \textrm{ids}(f) }{\msg{s_m}{r}{f} \preceq
+    \msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau}\})}}
+
   % TODO: May need restrictions about maps in maps...
   \infer[Map-Type-F]{\tau_1 \propto \tau_1' \\ \tau_2 \propto \tau_2' \\ \tau_1 \ne
     \mathtt{bytes}}{\msg{s_m}{r}{(f \cup \{\map{s_f}{id}{\tau_1}{\imp{\tau_2}}\})} \preceq
@@ -498,7 +501,124 @@ The main field-level compatibility theorem is stated below.
   \mathtt{Some}\ v_2$ and $v_1 \prec v_2$
 \end{theorem}
 
+\section{Compatibility Relation Examples}
+
+Consider these two Protobuf descriptors
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[bt]{0.43\textwidth}
+		\begin{lstlisting}[language=proto]
+// v1.proto -- A base proto for the
+// example software. Tracks some
+// basic information about an item,
+// with the ledger itself basically
+// being a list of items.
+syntax = "proto3";
+
+message Location {
+  string loc = 2;
+}
+
+message Item {
+  string name = 2;
+  string description = 3;
+  int32 value = 4;
+  Location loc = 5;
+}
+
+message Ledger {
+  int32 version = 1;
+  string world_name = 2;
+  repeated Item log = 3;
+}\end{lstlisting}
+	\end{minipage}
+	\hspace{0.5cm}
+	\begin{minipage}[bt]{0.48\textwidth}
+		\begin{lstlisting}[language=proto]
+// v2.proto -- build off v1.proto by
+// adding some extra fields to the
+// item, such as item level, and
+// split descriptions and locations
+syntax = "proto3";
+
+message Location {
+  string loc = 2;
+}
+
+message Item {
+  string name = 2;
+  string public_description = 3;
+  string private_description = 7;
+  int64 value = 4;
+  int32 level = 6;
+  Location origin_loc = 5;
+  Location current_loc = 8;
+}
+
+message Ledger {
+  int32 version = 1;
+  string world_name = 2;
+  repeated Item log = 3;
+}\end{lstlisting}
+	\end{minipage}
+
+	\caption{Example Protobuf descriptors for a hypothetical piece of software
+      which tracks TTRPG items, showing the original version on the left and an
+      updated version on the right.}
+	\label{fig:proto-ex}
+\end{figure}
+
+Clearly these descriptors are different, but are they \emph{compatible}?
+Evidence of their compatibility is a derivation of the compatibility relation.
+First, use the Message Relation (Section~\ref{sec:msg-rel}) to show that the base
+descriptors are compatible. Since the \texttt{Location} and \texttt{Ledger}
+messages are the same, one application of the reflexivity rule shows these to be
+compatible. As a shorthand, I'll use $f_x$ to refer to the fields from the right
+side of the conclusion of the rule annotated with the number $x$. I'm also
+abusing map notation to update fields rather than heavy set notation. I'd like
+to refactor this whole document to match that, with the fields being a map from
+field ID number to a tuple containing the name and type.
+\[
+  \inferrule*[right=(6)]{
+    \inferrule*[right=(5)]{
+        \inferrule*[right=(4)]{
+            \inferrule*[right=(3),vdots=1.5em,rightskip=7em]{
+                \inferrule*[right=(2)]{
+                    \inferrule*[right=(1)]{ 6 \not \in \mathrm{ids}(f) }{
+                        \msg{\mathrm{Item}}{\varnothing}{f} \preceq \\\\
+                        \msg{\mathrm{Item}}{\varnothing}{(f \cup \field{\mathrm{level}}{6}{\mathtt{int32}})}
+                    }
+                    8 \not \in \mathrm{ids}(f_1)
+                }{
+                    \msg{\mathrm{Item}}{\varnothing}{f_1} \preceq \\\\
+                    \msg{\mathrm{Item}}{\varnothing}{(f_1 \cup \field{\mathrm{current\_loc}}{8}{\mathtt{Location}})}
+                }
+                7 \not \in \mathrm{ids}(f_2)
+            }{
+                \msg{\mathrm{Item}}{\varnothing}{f_2} \preceq \\\\
+                \msg{\mathrm{Item}}{\varnothing}{(f_2 \cup \field{\mathrm{private\_description}}{8}{\mathtt{string}})}
+            }
+            \mathtt{int32} \propto \mathtt{int64}
+        }{
+            \msg{\mathrm{Item}}{\varnothing}{f_3} \preceq
+            \msg{\mathrm{Item}}{\varnothing}{(f_3[4 \mapsto \field{\mathrm{value}}{4}{\mathtt{int64}}])}
+        }
+    }{
+        \msg{\mathrm{Item}}{\varnothing}{f_4} \preceq
+        \msg{\mathrm{Item}}{\varnothing}{(f_4[3 \mapsto \field{\mathrm{public\_description}}{3}{\mathtt{string}}])}
+    }
+  }{
+    \msg{\mathrm{Item}}{\varnothing}{f_5} \preceq
+    \msg{\mathrm{Item}}{\varnothing}{(f_5[5 \mapsto \field{\mathrm{origin\_loc}}{5}{\mathtt{Location}}])}
+  }
+\]
+
+If we had concrete values for these descriptors, it would also be possible to
+show that those two values were related using the value relation.
+
 % Local Variables:
 % citar-bibliography: ("../pollux.bib")
 % TeX-master: "../pollux.tex"
+% jinx-local-words: "protobuf"
 % End:
