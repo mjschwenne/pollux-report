@@ -90,11 +90,11 @@ information to allow the specification type into include \texttt{option} or
       \toprule
       Specification Type & Protobuf Type \\
       \midrule
-      $\mathbb{Z}$ & \texttt{int32}, \texttt{uint32}, \texttt{sint32}
-            \texttt{int64}, \texttt{uint64}, \texttt{sint64} \\
-      $\mathbb{B}$ & \texttt{bool}    \\
-      \texttt{string} & \texttt{string}    \\
-      \texttt{list w8}  & \texttt{bytes}    \\
+      $\mathbb{Z}$ & \ints, \uints, \sints,
+            \intl, \uintl, \sintl{} \\
+      $\mathbb{B}$ & \bool{}    \\
+      \str{} & \str{}    \\
+      \texttt{list w8}  & \byt{}    \\
       -- & \texttt{float}, \texttt{double} \\
       \bottomrule
 	\end{tabular}
@@ -128,52 +128,52 @@ although the host program may have to deal with control character bytes being
 present in the resulting string.
 
 \begin{mathpar}
-  \infer[Str-Byte]{ }{v : \mathtt{string} \prec v : \mathtt{bytes}}
+  \infer[Str-Byte]{ }{v: \str{} \prec{} v: \byt{}}
 
-  \infer[Byte-Str]{ }{v : \mathtt{bytes} \prec v : \mathtt{string}}
+  \infer[Byte-Str]{ }{v: \byt{} \prec{} v: \str{}}
 \end{mathpar}
 
 \subsubsection{Integer Rules}
 
-As a shorthand, statements like \texttt{uint[n]} represent a variable length
-integer encoding into $n$ bits. In order to result in valid protobuf types, $n \in
-\{32, 64\}$. The change width rules are designed to allow for both integer
+As a shorthand, statements like \uintn{n} represent a variable length integer
+encoding into $n$ bits. In order to result in valid protobuf types,
+$n \in \{32, 64\}$. The change width rules are designed to allow for both integer
 promotion and demotion while the rest of the rules express what happens when
 converting between integers using different encoding types for negative numbers.
 
 With regard to the \textsc{Int-Chg-W} rule, I was originally concerned about
 negative 32 bit numbers being encoded into 5 bytes for a varint encoding and
 then becoming positive if parsed into 64 bit integer, but protobuf handles this
-by writing all negative \texttt{int[n]} into a full 10 bytes. 
+by writing all negative \intn{n} into a full 10 bytes. 
 
 It is also worth noting that the expression $v : \tau$ actually refers to a value
-of type $\llbracket \tau \rrbracket$ with a label of the type. All of the integer
-types have $\llbracket \cdot \rrbracket = \mathbb{Z}$, as shown in Table~\ref{tab:val-spec},
+of type $\denote{\tau}$ with a label of the type. All of the integer
+types have $\denote{\cdot} = \mathbb{Z}$, as shown in Table~\ref{tab:val-spec},
 which allows for the free conversion between integer types. Finally, $\%$ refers
 to modulus using floored division, so $-1 \mod 2 = 1$ and the rules are
 written with truncated integer division.
 
 \begin{mathpar}
-  \infer[Uint-Chg-W]{v_2 = v_1 \mod 2^m}{v_1 : \mathtt{uint[n]} \prec v_2 : \mathtt{uint[m]}}
+  \infer[Uint-Chg-W]{v_2 = v_1 \mod 2^m}{v_1: \uintn{n} \prec v_2: \uintn{m}}
 
-  \infer[Int-Chg-W]{v_2 = (v_1 \mod 2^{m-1} - 2^{m-1} \times \mathbb{1}[v_1 < 0]}{v_1
-    : \mathtt{int[n]} \prec v_2 : \mathtt{int[m]}}
+  \infer[Int-Chg-W]{v_2 = (v_1 \mod 2^{m-1} - 2^{m-1}) \times \mathbb{1}[v_1 < 0]}
+  {v_1 : \intn{n} \prec v_2 : \intn{m}}
 
   \infer[Sint-Chg-W]{v_2 = v_1 \mod 2^{m-1} - 2^{m-1} \times
     \mathbb{1}\left[\frac{v_1}{2^{m-1}} \mod 2 = 1\right]}{v_1 :
-    \mathtt{sint[n]} \prec v_2 : \mathtt{sint[m]}}
+    \sintn{n} \prec v_2 : \sintn[m]}
 
   \infer[Uint-Int]{v_2 = v_1 - 2^n \times \mathbb{1}[v_1 \ge 2^{n-1}]}{v_1 :
-    \mathtt{uint[n]} \prec v_2 : \mathtt{int[n]}}
+    \uintn{n} \prec v_2 : \intn{n}}
 
   \infer[Int-Uint]{v_2 = v_1 + 2^n \times \mathbb{1}[v_1 < 0]}{v_1 :
-    \mathtt{int[n]} \prec v_2 : \mathtt{uint[n]}} 
+    \intn{n} \prec v_2 : \uintn{n}} 
 
   \infer[Uint-Sint]{v_2 = (-1)^{v_1} \times \left( \frac{v_1}{2} \right) - (v_1 \%
-    2)}{v_1 : \mathtt{uint[n]} \prec v_2 : \mathtt{sint[n]}} 
+    2)}{v_1 : \uintn{n} \prec v_2 : \sintn{n}} 
 
   \infer[Sint-Uint]{v_2 = 2 \times |v_1| - \mathbb{1}[v_1 < 0]}{v_1 :
-    \mathtt{sint[n]} \prec v_2 : \mathtt{uint[n]}} 
+    \sintn{n} \prec v_2 : \uintn{n}} 
 
   \infer[Int-Sint]
   {
@@ -183,7 +183,7 @@ written with truncated integer division.
         (-1)^{v_1} \times \left(v_1 + 2^{n-1} - \frac{v_1}{2} \right) & \text{otherwise}
       \end{array}}\right.
   }
-  {v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{sint[n]}}
+  {v_1 : \intn{n} \prec v_2 : \sintn{n}}
 
   \infer[Sint-Int]
   {
@@ -193,7 +193,7 @@ written with truncated integer division.
         2 \times |v_1| - 2^n - \mathbb{1}[v_1 < 0] & \text{otherwise}
       \end{array}}\right.
   }
-  {v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{int[n]}}
+  {v_1 : \sintn{n} \prec v_2 : \intn{n}}
 \end{mathpar}
 
 \subsubsection{Boolean Rules}
@@ -205,40 +205,40 @@ Booleans can be converted to and from any of the integer types.
   {
     v_2 = \left\{
       {\begin{array}{l@{\quad:\quad}l}
-        \mathtt{false} & \text{if } v_1 = 0 \\
-        \mathtt{true} & \text{otherwise}
+        \false & \text{if } v_1 = 0 \\
+        \true & \text{otherwise}
       \end{array}}\right.
   }
-  {v_1 : \mathtt{uint[n]} \prec v_2 : \mathtt{bool}}
+  {v_1 : \uintn{n} \prec v_2 : \bool}
 
-  \infer[Bool-Uint]{v_2 = \mathbb{1}[v_1]}{v_1 : \mathtt{bool} \prec v_2 :
-    \mathtt{uint[n]}} 
+  \infer[Bool-Uint]{v_2 = \mathbb{1}[v_1]}{v_1 : \bool \prec v_2 :
+    \uintn{n}} 
 
   \infer[Int-Bool]
   {
     v_2 = \left\{
       {\begin{array}{l@{\quad:\quad}l}
-        \mathtt{false} & \text{if } v_1 = 0 \\
-        \mathtt{true} & \text{otherwise}
+        \false & \text{if } v_1 = 0 \\
+        \true & \text{otherwise}
       \end{array}}\right.
   }
-  {v_1 : \mathtt{int[n]} \prec v_2 : \mathtt{bool}}
+  {v_1 : \intn{n} \prec v_2 : \bool}
 
-  \infer[Bool-Int]{v_2 = \mathbb{1}[v_1]}{v_1 : \mathtt{bool} \prec v_2 :
-    \mathtt{int[n]}} 
+  \infer[Bool-Int]{v_2 = \mathbb{1}[v_1]}{v_1 : \bool \prec v_2 :
+    \intn{n}} 
 
   \infer[Sint-Bool]
   {
     v_2 = \left\{
       {\begin{array}{l@{\quad:\quad}l}
-        \mathtt{false} & \text{if } v_1 = 0 \\
-        \mathtt{true} & \text{otherwise}
+        \false & \text{if } v_1 = 0 \\
+        \true & \text{otherwise}
       \end{array}}\right.
   }
-  {v_1 : \mathtt{sint[n]} \prec v_2 : \mathtt{bool}}
+  {v_1 : \sintn{n} \prec v_2 : \bool}
 
-  \infer[Bool-Sint]{v_2 = -\mathbb{1}[v_1]}{v_1 : \mathtt{bool} \prec v_2 :
-    \mathtt{sint[n]}} 
+  \infer[Bool-Sint]{v_2 = -\mathbb{1}[v_1]}{v_1 : \bool \prec v_2 :
+    \sintn{n}} 
 \end{mathpar}
 
 \subsubsection{Message \& Enum Rules}
@@ -248,12 +248,11 @@ Section~\ref{sec:msg-rel}. The values are represented as a mapping from the id
 number of each field to the value and type of that field. 
 
 \begin{mathpar}
-  \infer[Msg]{\forall\ i \in ids(v_{m_2}).\ (i \in ids(v_{m_1}) \wedge v_i \prec v_i') \vee v_i' =
-    default(\tau_i')}{v_{m_1} = \left\{ id_1:(v_1, \tau_1) \dots, id_n: (v_n, \tau_n)
-    \right\} : \mathtt{MSG}\ m_1 \prec v_{m_2} = \left\{ id_1':(v_1', \tau_1') \dots,
-      id_m':(v_m', \tau_m') \right\} : \mathtt{MSG}\ m_2}
-
-  \infer[Enum]{v \in vals(e_2)}{v : \enum{s_1}{e_1} \prec v : \enum{s_2}{e_2}}
+  \infer[Msg]{\msg{r_1}{f_1} \preceq \msg{r_2}{f_2} \\ \forall\;i \in \dom{v_2}.\;\left( f_1(i) =
+      (s, \tau_1) \wedge v_1(i) \prec v_2(i) \right) \vee v_2(i) = default\left(\mathtt{snd}\ f_2(i)\right)}
+  {v_1 : \mathtt{MSG}\ \msg{r_1}{f_1} \prec v_2 : \mathtt{MSG}\ \msg{r_2}{f_2} }
+  
+  \infer[Enum]{v \in e_2}{v : \enum{e_1} \prec v : \enum{e_2}}
 \end{mathpar}
 
 \subsubsection{Decorator Rules}
@@ -272,16 +271,16 @@ on these modified types.
 
 \begin{mathpar}
   \infer[Rep-Pass]{v_1:\tau_1 \prec v_1':\tau_2 \\ \cdots \\ v_n:\tau_1 \prec v_n':\tau_2}{[v_1; \dots;
-    v_n]: \rep{\tau_1} \prec [v_1'; \dots; v_n']: \rep{\tau_2}}
+    v_n]: \rept{\tau_1} \prec [v_1'; \dots; v_n']: \rept{\tau_2}}
 
-  \infer[Opt-Some-Pass]{v_1:\tau_1 \prec v_2:\tau_2}{(\some{v_1}): \opt{\tau_1} \prec
-    (\some{v_2}): \opt{\tau_2}}
+  \infer[Opt-Some-Pass]{v_1:\tau_1 \prec v_2:\tau_2}{(\some{v_1}): \optt{\tau_1} \prec
+    (\some{v_2}): \optt{\tau_2}}
 
-  \infer[Opt-None-Pass]{ }{\none: \opt{\tau_1} \prec \none: \opt{\tau_2}}
+  \infer[Opt-None-Pass]{ }{\none: \optt{\tau_1} \prec \none: \optt{\tau_2}}
   
-  \infer[Opt-Intro]{ }{v:\tau \prec (\some{v}): \opt{\tau}}
+  \infer[Opt-Intro]{ }{v:\tau \prec (\some{v}): \optt{\tau}}
 
-  \infer[Rep-Intro]{ }{v:\tau \prec [v]: \rep{\tau}}
+  \infer[Rep-Intro]{ }{v:\tau \prec [v]: \rept{\tau}}
 
   \infer[Missing-Imp]{ }{\none: \tau_1 \prec default(\tau_2):\tau_2}
 \end{mathpar}
@@ -298,14 +297,14 @@ This relation relates types which can be converted via the value relation.
 \subsubsection{Base Type Rules}
 
 \begin{mathpar}
-  \infer[Str-Byt-T]{ }{\mathtt{string} \propto \mathtt{bytes}}
+  \infer[Str-Byt-T]{ }{\str \propto \byt}
 
-  \infer[Byt-Str-T]{ }{\mathtt{bytes} \propto \mathtt{string}}
+  \infer[Byt-Str-T]{ }{\byt \propto \str}
 
   \infer[Int-Int-T]{\tau_1, \tau_2 \in \left\{{
         \begin{array}{c}
-          \texttt{int32}, \texttt{int64}, \texttt{uint32}, \texttt{uint64} \\
-          \texttt{sint32}, \texttt{sint64}, \texttt{bool}
+          \ints, \intl, \uints, \uintl \\
+          \sints, \sintl, \bool
         \end{array}
       }\right\}}{\tau_1 \propto \tau_2}
 \end{mathpar}
@@ -315,7 +314,7 @@ This relation relates types which can be converted via the value relation.
 \begin{mathpar}
   \infer[Msg-T]{m_1 \preceq m_2}{\mathtt{MSG}\ m_1 \propto \mathtt{MSG}\ m_2}
 
-  \infer[Enum-T]{vals(e_1) \subset vals(e_2)}{\enum{s_1}{e_1} \propto \enum{s_2}{e_2}}
+  \infer[Enum-T]{e_1 \subset e_2}{\enum{e_1} \propto \enum{e_2}}
 \end{mathpar}
 
 \subsubsection{Decorator Rules}
@@ -325,15 +324,15 @@ need to ensure that decorator restrictions like moving from a repeated field to
 a singleton one aren't violated.
 
 \begin{mathpar}
-  \infer[Opt-Add-T]{ }{\tau \propto \opt{\tau}}
+  \infer[Opt-Add-T]{ }{\tau \propto \optt{\tau}}
 
-  \infer[Opt-Rm-T]{ }{\opt{\tau} \propto \tau}
+  \infer[Opt-Rm-T]{ }{\optt{\tau} \propto \tau}
 
-  \infer[Opt-T]{\tau_1 \propto \tau_2}{\opt{\tau_1} \propto \opt{\tau_2}}
+  \infer[Opt-T]{\tau_1 \propto \tau_2}{\optt{\tau_1} \propto \optt{\tau_2}}
 
-  \infer[Rep-Add-T]{ }{\tau \propto \rep{\tau}}
+  \infer[Rep-Add-T]{ }{\tau \propto \rept{\tau}}
 
-  \infer[Rep-T]{\tau_1 \propto \tau_2}{\rep{\tau_1} \propto \rep{\tau_2}}
+  \infer[Rep-T]{\tau_1 \propto \tau_2}{\rept{\tau_1} \propto \rept{\tau_2}}
 \end{mathpar}
 
 \subsection{Message Relation}~\label{sec:msg-rel}
@@ -341,27 +340,14 @@ a singleton one aren't violated.
 The descriptor compatibility relation $\preceq$ is defined as below, but first it is
 important to discuss the structure of fields and messages.
 
-Each field is one of three different type of fields, the standard scalar field,
-a map field or a \texttt{oneof} field. Specifically, the inductive type for
-each style of field contains these pieces of information:
+A message value is a tuple containing a set of reserved field numbers and names,
+then a map from an identifier to a tuple with the name of the field and the type
+of the field. The identifier is either a tag for a single field, or a set of
+integers which is used for a \texttt{oneof}, where multiple fields must be
+mutually exclusively set.
 
-\begin{itemize}
-\item \texttt{FIELD}: Contains the name of the field, the identifying field
-  number and protobuf type (containing the decorator as well, possibly
-  \texttt{OPT} or \texttt{REP}).
-\item \texttt{MAP}: Contains the name of the field, the identifying field number
-  and two protobuf types, one for the keys and one of the values.
-\item \texttt{ONEOF}: Contains a name and a set of other fields.
-\end{itemize}
-
-A message descriptor and an enum descriptor are modeled one step above a field,
-containing the following pieces of information:
-
-\begin{itemize}
-\item \texttt{MSG}: Contains the name of the message, a set of reserved indices
-  and then a set of field definitions.
-\item \texttt{ENUM}: Contains a set of name, id number pairs.
-\end{itemize}
+Enums will be modeled as a set of integers, likewise ignoring the name given to
+each element to favor the integer which is used in the encoding. 
 
 \subsubsection{Basic Rules}
 
@@ -369,16 +355,13 @@ A compatibility relation is both reflexive and transitive, although it is
 neither symmetric nor anti-symmetric.  
 
 \begin{mathpar}
-   \infer[Refl-M]{ }{\msg{s}{r}{f} \preceq \msg{s}{r}{f}}
+   \infer[Refl-M]{ }{m \preceq m}
 
-   \infer[Refl-E]{ }{\enum{s}{v} \preceq \enum{s}{v}}
+   \infer[Refl-E]{ }{e \preceq e}
 
-   \infer[Trans-M]{\msg{s_1}{r_1}{f_1} \preceq \msg{s_2}{r_2}{f_2} \\
-     \msg{s_2}{r_2}{f_2} \preceq \msg{s_3}{r_3}{f_3}}{\msg{s_1}{r_1}{f_1} \preceq
-     \msg{s_3}{r_3}{f_3}}
+   \infer[Trans-M]{m_1 \preceq m_2 \\ m_2 \preceq m_3}{m_1 \preceq m_3}
 
-   \infer[Trans-E]{\enum{s_1}{v_1} \preceq \enum{s_2}{v_2} \\
-     \enum{s_2}{v_2} \preceq \enum{s_3}{v_3}}{\enum{s_1}{v_1} \preceq \enum{s_3}{v_3}}
+   \infer[Trans-E]{e_1 \preceq e_2 \\ e_2 \preceq e_3}{e_1 \preceq e_3}
 \end{mathpar}
 
 \subsubsection{Field Update Rules}
@@ -388,25 +371,13 @@ and to allow the relations to expand in the future. However, since names are
 recorded in the encoded message, they are currently allowed to freely change.
 
 \begin{mathpar}
-  \infer[Field-Name]{ }{\msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau}\})} \preceq
-    \msg{s_m}{r}{(f \cup \{\field{s_f'}{id}{\tau}\})}}
+  \infer[Field-Type]{f(id) = \tau_1 \\ \tau_1 \propto \tau_2}{\msg{r}{f} \preceq \msg{r}{f[id \mapsto \tau_2]}}
 
-  \infer[Map-Name]{ }{\msg{s_m}{r}{(f \cup \{\map{s_f}{id}{\tau_1}{\tau_2}\})} \preceq
-    \msg{s_m}{r}{(f \cup \{\map{s_f'}{id}{\tau_1}{\tau_2}\})}}
-
-  \infer[Oneof-Name]{ }{\msg{s_m}{r}{(f \cup \{\oneof{s_f}{f_o}\})} \preceq
-    \msg{s_m}{r}{(f \cup \{\oneof{s_f'}{f_o}\})}}
-
-  \infer[Field-Type]{\tau_1 \propto \tau_2}{\msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau_1}\})} \preceq
-    \msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau_2}\})}}
-
-  \infer[Field-Add]{id \not \in \textrm{ids}(f) }{\msg{s_m}{r}{f} \preceq
-    \msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau}\})}}
+  \infer[Field-Add]{id \not \in \textrm{dom}(f) }{\msg{r}{f} \preceq \msg{r}{f[id \mapsto \tau]}}
 
   % TODO: May need restrictions about maps in maps...
-  \infer[Map-Type-F]{\tau_1 \propto \tau_1' \\ \tau_2 \propto \tau_2' \\ \tau_1 \ne
-    \mathtt{bytes}}{\msg{s_m}{r}{(f \cup \{\map{s_f}{id}{\tau_1}{\imp{\tau_2}}\})} \preceq
-    \msg{s_m}{r}{(f \cup \{\map{s_f}{id}{\tau_1'}{\imp{\tau_2'}}\})}}
+  \infer[Map-Type-F]{f(id) = (\map{\tau_1}{\impt{\tau_2})} \\ \tau_1 \propto \tau_1' \\ \tau_2 \propto \impt{\tau_2'} \\ \tau_1 \ne \byt}
+  {\msg{r}{f} \preceq \msg{r}{f[id \mapsto (\map{\tau_1'}{\imp{\tau_2'}})]}}
 \end{mathpar}
 
 \subsubsection{Oneof Rules}
@@ -415,37 +386,38 @@ The \texttt{oneof} rules are a bit complicated because a \texttt{oneof}
 struggles against the notion that the field relations only connects one field to
 one field by encapsulating several fields into a singular field.
 
+% FIXME: Oneof fields don't cleanly fit into the map abstractions since there is
+% no clear choice of key.
+
 \begin{mathpar}
-  \infer[Oneof-Intro-Field]{m \in \{\mathtt{IMP}, \mathtt{OPT}\}}{\msg{s_m}{r}{(f
-      \cup \{\field{s_f}{id}{(m\ \tau)}\})} \preceq \msg{s_m}{r}{(f \cup
-      \{\oneof{s_o}{\{\field{s_f}{id}{(m\ \tau)}\}}\})}}
+  \infer[Oneof-Intro-Field]{d \in \{\imp, \opt\} \\ f(id) = d\ \tau}
+  {\msg{r}{f} \preceq \msg{r}{f[\{id\} \mapsto \oneof{id \mapsto (d\ \tau)}]}}
 
   % May need some statement about f_{n+1} not already being in the message?
   % You can introduce a new field, but not move an existing one.
-  \infer[Oneof-Add-F]{m \in \{\mathtt{IMP}, \mathtt{OPT}\} \\ s_n \not \in names(f \cup
-    f_o) \\ id_n \not \in ids(f \cup f_o)}{\msg{s_m}{r}{f \cup \{\oneof{s_f}{f_o}\}} \preceq
-    \msg{s_m}{r}{f \cup \{\oneof{s_f}{(f_o \cup \{\field{s_n}{id_n}{(m\ \tau)}\})}\}}}
+  \infer[Oneof-Add-F]{d \in \{\mathtt{IMP}, \mathtt{OPT}\} \\ id_n \not \in
+    id_s \\ f(id_s) = m \\ id_n \not \in  \mathrm{dom}(m) \\ \tau \not= \mathtt{MAP}}
+  {\msg{r}{f} \preceq \msg{r}{f[id_s \cup \{id_n\} \mapsto (m[id_n \mapsto (d \tau)])]}}
 
   % This rule should just be a combination of the above two rules...
-  \infer[Oneof-Intro-New]{s_f \not \in names(f) \\ ids(f) \cap ids(f_o) = \emptyset \\
-    names(f) \cap names(f_o) = \emptyset \\\\ \mathtt{REP} \not \in dec(f_o) \\ \forall f_n \in f_o.\
-    f \ne \mathtt{MAP}}{\msg{s_m}{r}{f} \preceq \msg{s_m}{r}{(f \cup
-      \{\oneof{s_f}{f_o}\})}}
+  \infer[Oneof-Intro-New]{\dom{ f } \cap \dom{ f_o } = \emptyset
+    \\ \mathtt{REP} \not \in dec(f_o) \\ \forall\;id_n \in \dom{f_o}.\
+    \texttt{snd}\ f_o(id_n) \ne \mathtt{MAP}}{\msg{r}{f} \preceq \msg{r}{f[\dom{f_o}
+      \mapsto f_o]}}
 
-  \infer[Oneof-Elim]{ }{\msg{s_m}{r}{(f \cup \{\oneof{s_f}{f_o}\})} \preceq \msg{s_m}{r}{(f
-      \cup \{f_o\})}}
+  \infer[Oneof-Elim]{f(id_n) = m \\ id \in id_n }
+  {\msg{r}{f} \preceq \msg{r}{f[id_n \setminus id \mapsto m \setminus id]}}
 
   % I'm not sure about the premise of this rule, but it seems better than having
   % to making another version of all the other rules. This is the first instance
   % where having a field relation would be very helpful.
-  \infer[Oneof-Feild-Update]{\msg{``"}{\emptyset}{\{f\}} \preceq
-    \msg{``"}{\emptyset}{\{f'\}}}{\msg{s}{r}{(f_m \cup \{\oneof{s_f}{(f_{o} \cup \{f\})}\})} \preceq
-    \msg{s}{r}{(f_m \cup \{\oneof{s_f}{(f_o \cup \{f'\})}\})}}
+  \infer[Oneof-Feild-Update]{f_o(id) = \tau \\ \tau' \propto \tau}
+  {\msg{r}{f[id \mapsto f_o]} \preceq \msg{r}{f[id \mapsto ( f_o[id \mapsto \tau'] )]}}
 \end{mathpar}
 
 \subsubsection{Field \& Enum Rules}
 
-Messages are similar to records in \fstar{} or other functional languages and
+Messages are similar to records in Rocq or other functional languages and
 message compatibility can take the same two routes that record subtyping can:
 width compatibility and depth compatibility. In width compatibility updates, new
 fields are added to the message, making the updated version a strict superset of
@@ -453,12 +425,11 @@ the original message. In depth compatibility updates, the number of fields
 remains the same, but other attributes of the field are updated compatible ways.
 
 \begin{mathpar}
-  \infer[Msg-Width-Field]{s_f \not \in names(f) \\ id \not \in
-    ids(f)}{\msg{s_m}{r}{f} \preceq \msg{s_m}{r}{(f \cup \{\field{s_f}{id}{\tau}\})}}
+  \infer[Msg-Width-Field]{id \not \in \mathrm{dom}(f)}
+  {\msg{r}{f} \preceq \msg{r}{f[id \mapsto \tau]}}
 
-  \infer[Msg-Width-Depth]{\msg{``"}{\emptyset}{\{f\}} \preceq
-    \msg{``"}{\emptyset}{\{f'\}}}{\msg{s_m}{r}{(fs \cup \{f\})} \preceq
-    \msg{s_m}{r}{(fs \cup \{f'\})}}
+  \infer[Msg-Width-Depth]{f(id) = \tau \\ \tau' \propto \tau}
+  {\msg{r}{f} \preceq \msg{r}{f[id \mapsto \tau']}}
 \end{mathpar}
 
 The enum rules are similar to the message rules at least in the sense that enums
@@ -471,16 +442,16 @@ handles enums, since it doesn't support closed enums. Since protobuf enums don't
 contain extra information, no depth rules is allowed.
 
 \begin{mathpar}
-  \infer[Enum-Width]{vals(e_1) \subset vals(e_2)}{\enum{s_1}{e_1} \preceq \enum{s_2}{e_2}}
+  \infer[Enum-Width]{vals(e_1) \subset vals(e_2)}{e_1 \preceq e_2}
 \end{mathpar}
 
 \subsubsection{Reserved Field Rules}
 
 \begin{mathpar}
-  \infer[Reserved-Add]{r \subset r'}{\msg{s}{r}{f} \preceq \msg{s}{r'}{f}}
+  \infer[Reserved-Add]{r \subset r'}{\msg{r}{f} \preceq \msg{r'}{f}}
 
   {\color{red}
-    \infer[Reserved-Rm]{r \supset r'}{\msg{s}{r}{f} \preceq \msg{s}{r'}{f}}
+    \infer[Reserved-Rm]{r \supset r'}{\msg{r}{f} \preceq \msg{r'}{f}}
   }
 \end{mathpar}
 
@@ -488,7 +459,7 @@ contain extra information, no depth rules is allowed.
 
 \begin{definition}[Valid Protobuf Descriptors]
   A protobuf message descriptor is \emph{valid}, denoted $v(d)$ if
-  $\msg{``"}{\emptyset}{\emptyset} \preceq \msg{s}{r}{f}$.
+  $\msg{\emptyset}{\emptyset} \preceq \msg{r}{f}$.
 \end{definition}
 
 \subsubsection{Compatibility Theorem}
@@ -574,45 +545,22 @@ Evidence of their compatibility is a derivation of the compatibility relation.
 First, use the Message Relation (Section~\ref{sec:msg-rel}) to show that the base
 descriptors are compatible. Since the \texttt{Location} and \texttt{Ledger}
 messages are the same, one application of the reflexivity rule shows these to be
-compatible. As a shorthand, I'll use $f_x$ to refer to the fields from the right
-side of the conclusion of the rule annotated with the number $x$. I'm also
-abusing map notation to update fields rather than heavy set notation. I'd like
-to refactor this whole document to match that, with the fields being a map from
-field ID number to a tuple containing the name and type.
-\[
-  \inferrule*[right=(6)]{
-    \inferrule*[right=(5)]{
-        \inferrule*[right=(4)]{
-            \inferrule*[right=(3),vdots=1.5em,rightskip=7em]{
-                \inferrule*[right=(2)]{
-                    \inferrule*[right=(1)]{ 6 \not \in \mathrm{ids}(f) }{
-                        \msg{\mathrm{Item}}{\varnothing}{f} \preceq \\\\
-                        \msg{\mathrm{Item}}{\varnothing}{(f \cup \field{\mathrm{level}}{6}{\mathtt{int32}})}
-                    }
-                    8 \not \in \mathrm{ids}(f_1)
-                }{
-                    \msg{\mathrm{Item}}{\varnothing}{f_1} \preceq \\\\
-                    \msg{\mathrm{Item}}{\varnothing}{(f_1 \cup \field{\mathrm{current\_loc}}{8}{\mathtt{Location}})}
-                }
-                7 \not \in \mathrm{ids}(f_2)
-            }{
-                \msg{\mathrm{Item}}{\varnothing}{f_2} \preceq \\\\
-                \msg{\mathrm{Item}}{\varnothing}{(f_2 \cup \field{\mathrm{private\_description}}{8}{\mathtt{string}})}
-            }
-            \mathtt{int32} \propto \mathtt{int64}
-        }{
-            \msg{\mathrm{Item}}{\varnothing}{f_3} \preceq
-            \msg{\mathrm{Item}}{\varnothing}{(f_3[4 \mapsto \field{\mathrm{value}}{4}{\mathtt{int64}}])}
-        }
-    }{
-        \msg{\mathrm{Item}}{\varnothing}{f_4} \preceq
-        \msg{\mathrm{Item}}{\varnothing}{(f_4[3 \mapsto \field{\mathrm{public\_description}}{3}{\mathtt{string}}])}
-    }
-  }{
-    \msg{\mathrm{Item}}{\varnothing}{f_5} \preceq
-    \msg{\mathrm{Item}}{\varnothing}{(f_5[5 \mapsto \field{\mathrm{origin\_loc}}{5}{\mathtt{Location}}])}
-  }
-\]
+compatible. Focus on the \texttt{item} message then. 
+\begin{align*}
+  &\msg{\emptyset}{f} \\
+  &\left\{f(3) = (\lb{description}, \str) \right\} \\
+  &\msg{\emptyset}{f[3 \mapsto \field{public\_description}{\str}]} = \msg{\emptyset}{f_1} \\
+  &\left\{ \ints \propto \intl \right\} \\
+  &\msg{\emptyset}{f_1[4 \mapsto \field{value}{\intl}]} = \msg{\emptyset}{f_2} \\
+  &\left\{ f_2(5) = \field{loc}{\mathtt{Location}} \right\} \\
+  &\msg{\emptyset}{f_2[5 \mapsto \field{current\_loc}{\mathtt{Location}}]} = \msg{\emptyset}{f_3} \\
+  &\left\{ 6 \not \in \dom{f_3} \right\} \\
+  &\msg{\emptyset}{f_3[6 \mapsto \field{level}{\ints}]} = \msg{\emptyset}{f_4} \\
+  &\left\{ 7 \not \in \dom{f_4} \right\} \\
+  &\msg{\emptyset}{f_4[7 \mapsto \field{private\_description}{\str}]} = \msg{\emptyset}{f_5} \\
+  &\left\{ 8 \not \in \dom{f_5} \right\} \\
+  &\msg{\emptyset}{f_5[8 \mapsto \field{current\_loc}{\mathtt{Location}}]}
+\end{align*}
 
 If we had concrete values for these descriptors, it would also be possible to
 show that those two values were related using the value relation.

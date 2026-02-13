@@ -79,22 +79,55 @@
 \newcommand{\fstar}{F$^\star$}
 \renewcommand{\emptyset}{\varnothing}
 \renewcommand{\mod}{\;\%\;}
-\newcommand{\imp}[1]{\mathtt{IMP}\ #1}
-\newcommand{\opt}[1]{\mathtt{OPT}\ #1}
-\newcommand{\rep}[1]{\mathtt{REP}\ #1}
-\newcommand{\some}[1]{\mathtt{Some}\ #1}
-\newcommand{\none}{\mathtt{NONE}}
-\newcommand{\field}[3]{\mathtt{FIELD}\ #1\ #2\ #3}
-\newcommand{\map}[4]{\mathtt{MAP}\ #1\ #2\ #3\ #4}
-\newcommand{\oneof}[2]{\mathtt{ONEOF}\ #1\ #2}
-\newcommand{\msg}[3]{\mathtt{MSG}\ #1\ #2\ #3}
-\newcommand{\enum}[2]{\mathtt{ENUM}\ #1\ #2}
+
+\newcommand{\impt}[1]{\mathtt{IMP}\ #1}
+\newcommand{\optt}[1]{\mathtt{OPT}\ #1}
+\newcommand{\rept}[1]{\mathtt{REP}\ #1}
+\newcommand{\imp}{\mathtt{IMP}}
+\newcommand{\opt}{\mathtt{OPT}}
+\newcommand{\rep}{\mathtt{REP}}
+
+% Using "s" and "l" as "short" and "long" since LaTeX commands can't contain
+% numbers in their names...
+\newcommand{\ints}{\texttt{int32}}
+\newcommand{\intl}{\texttt{int64}}
+\newcommand{\intn}[1]{\texttt{int}[\texttt{#1}]}
+\newcommand{\uints}{\texttt{uint32}}
+\newcommand{\uintl}{\texttt{uint64}}
+\newcommand{\uintn}[1]{\texttt{uint}[\texttt{#1}]}
+\newcommand{\sints}{\texttt{sint32}}
+\newcommand{\sintl}{\texttt{sint64}}
+\newcommand{\sintn}[1]{\texttt{sint}[\texttt{#1}]}
+\newcommand{\fixeds}{\texttt{fixed32}}
+\newcommand{\fixedl}{\texttt{fixed64}}
+\newcommand{\fixedn}[1]{\texttt{fixed}[\texttt{#1}]}
+\newcommand{\sfixeds}{\texttt{sfixed32}}
+\newcommand{\sfixedl}{\texttt{sfixed64}}
+\newcommand{\sfixedn}[1]{\texttt{sfixed}[\texttt{#1}]}
+\newcommand{\bool}{\texttt{bool}}
+\newcommand{\true}{\texttt{true}}
+\newcommand{\false}{\texttt{false}}
+\newcommand{\enum}[1]{\texttt{enum}\ #1}
+\newcommand{\str}{\texttt{string}}
+\newcommand{\byt}{\texttt{bytes}}
+
+\newcommand{\some}[1]{\texttt{Some}\ #1}
+\newcommand{\none}{\texttt{None}}
+
+\newcommand{\lb}[1]{``\mathrm{#1}"}
+\newcommand{\field}[2]{(``\mathrm{#1}",#2)}
+\newcommand{\map}[2]{#1 \rightharpoonup{} #2}
+
+\newcommand{\ptag}[1]{\texttt{#1}}
+\newcommand{\oneof}[1]{\left\{#1\right\}}
+\newcommand{\msg}[2]{(#1,#2)}
+
+\newcommand{\dom}[1]{\mathrm{dom}(#1)}
+\newcommand{\denote}[1]{\llbracket{} #1 \rrbracket{}}
 
 \begin{document}
-
 \maketitle
 \tableofcontents
-
 \input{sections/01-intro.tex}
 
 \input{sections/02-proto-primer.tex}
