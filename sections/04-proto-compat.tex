@@ -135,6 +135,15 @@ present in the resulting string.
 
 \subsubsection{Integer Rules}
 
+Every integer type and several non-integer protobuf types are encoded using the
+variable-width integer encoding described in Section~\ref{sec:proto-vint}. To
+allow any integer to be converted into any other integer type without needing 30
+different rules, we've split the rules into two groups. The first group changes
+the width of the integer, i.e. allowing for \texttt{int32} to become an
+\texttt{int64} or vice-versa. The second group converts between unsigned, signed
+and zig-zag integers at the same bit width. Any integer conversion can happen in
+at most two applications of integer rules.
+
 As a shorthand, statements like \uintn{n} represent a variable length integer
 encoding into $n$ bits. In order to result in valid protobuf types,
 $n \in \{32, 64\}$. The change width rules are designed to allow for both integer
@@ -255,19 +264,37 @@ number of each field to the value and type of that field.
   \infer[Enum]{v \in e_2}{v : \enum{e_1} \prec v : \enum{e_2}}
 \end{mathpar}
 
+The first rule is complex. It stands that a message with some reserved fields
+and field definitions can be interpreted as a message with a different set of
+reserved fields and field definitions if the two descriptors are compatible and
+if for all fields in the resulting value, either (1) it has a compatible value
+(2) it has the default value.
+
+The second rule simply states that the value of an enum $e_1$ is also defined in
+enum $e_2$.
+
 \subsubsection{Decorator Rules}
 
-Since the specification type can include \texttt{option}'s and \texttt{list}'s,
-rules for handling these must also be present in the value relation. These rules
-are grouped into introduction rules, which take implicit values and make them
-optional or repeated, pass through rules which enable the above rules to operate
-on these modified types.
+Since the specification type can include \texttt{option}'s and
+\texttt{repeated}'s, rules for handling these must also be present in the value
+relation. These rules are grouped into introduction rules, which take implicit
+values and make them optional or repeated, pass through rules which enable the
+above rules to operate on these modified types.
+
+Generally speaking, we can introduce, eliminate {\color{red} (It's clear what
+  happens when we eliminate a non-packed \texttt{repeated} field; the last
+  writer wins. What happens when we eliminate a packed field?)} or change the
+underlying type of each decorator. Implicit fields require no special
+consideration.
 
 {\color{red} There really should be a rule which can introduce a \texttt{None},
   but since implicit fields are modeled as just the spec type, this is
   difficult. I will likely need to model both implicit and optional fields with
   an \texttt{option}, add an annotation to the protobuf type and provide a
-  function which introduces a default value for each type.}
+  function which introduces a default value for each type. Alternatively, I
+  could have a \texttt{MISSING} value and a get function, which if it encounters
+  the \texttt{MISSING} just returns the default value. That would align with the
+  descriptor setup in my intermediate parse setup.}
 
 \begin{mathpar}
   \infer[Rep-Pass]{v_1:\tau_1 \prec v_1':\tau_2 \\ \cdots \\ v_n:\tau_1 \prec v_n':\tau_2}{[v_1; \dots;
@@ -287,12 +314,17 @@ on these modified types.
 
 \subsection{Type Relation}~\label{sec:typ-rel}
 
-This relation relates types which can be converted via the value relation.
-\\
+This relation relates types which can be converted via the value
+relation. Recall that this relation is needed to reason about descriptor-only
+compatibility, which doesn't have any concrete values associated with it.
+
 \begin{definition}[Type Relation]
   The type relation relates two protobuf type $\tau_1$ and $\tau_2$, denoted $\tau_1 \propto
   \tau_2$ if for all $v_1:\tau_1$ there exists a $v_2:\tau_2$ such that $v_1:\tau_1 \prec v_2:\tau_2$.
 \end{definition}
+
+These rules compress many of the rules in the previous section into one rule,
+stating that types are compatible with each other.
 
 \subsubsection{Base Type Rules}
 
@@ -369,6 +401,13 @@ neither symmetric nor anti-symmetric.
 For the moment, names are recorded the protobuf field descriptors for accuracy
 and to allow the relations to expand in the future. However, since names are
 recorded in the encoded message, they are currently allowed to freely change.
+
+{\color{red} I seem to remember Tej saying that we \emph{should} have the name
+  information available somewhere in the descriptor. I need to check my notes
+  about that.}
+
+Generally speaking, we can change the type of a field, add a new field or update
+a field in a map.
 
 \begin{mathpar}
   \infer[Field-Type]{f(id) = \tau_1 \\ \tau_1 \propto \tau_2}{\msg{r}{f} \preceq \msg{r}{f[id \mapsto \tau_2]}}
