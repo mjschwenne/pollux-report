@@ -43,7 +43,7 @@
               texlive.combined.scheme-full
             ];
 
-            shellHook = '''';
+            shellHook = "";
           };
       }
     );
