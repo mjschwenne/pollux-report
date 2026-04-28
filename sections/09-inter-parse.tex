@@ -145,6 +145,7 @@ is always related to itself, this is known as the \emph{identity compatibility
   relation}. Let $\langle v_1 : d_1 \preceq v_2 : d_2 \rangle$ denote that $v_1$
 when interpreted under $d_1$ is compatible with $v_2$ under $d_2$.
 
+\subsubsection{Schema Correct Identity Compatibility Relation}\label{sec:sc-id-compat}
 In order to simplify proof burdens for the moment, there is another important
 concept here: when a value is \emph{fully described} or \emph{schema correct} by
 a descriptor. Intuitively, this means that every value is the message has a
@@ -186,6 +187,25 @@ flexibility and to generalize to a more complex relation.
 That is also why the \textsc{Compat-Add} rule has premises $v_1 = v_2$ and $f_1
 = f_2$ for a more complex compatibility story, this was call out to the value
 relation (Section~\ref{sec:val-rel}) and type relation (Section~\ref{sec:typ-rel}).
+
+\subsubsection{Full Identity Compatibility Relation}\label{sec:full-id-compat}
+If we want to relax the requirement that the value is always fulled described by
+the paired descriptor, we have to allow for values to be dropped during
+serialization and missing values inserted during parsing. In this setting, it
+\emph{should} be the case that any field in both the value and descriptor have
+matching types.
+
+\begin{mathpar}
+  \infer[Empty]{ }{\langle \emptyset : \emptyset \preceq \emptyset : \emptyset \rangle}
+
+  \infer[Insert]{d' = d[k \mapsto \mathtt{F\_INT}] \\ \langle m' : d \preceq m : d \rangle}{\langle m'[k \mapsto z]
+    : d' \preceq m[k \mapsto z] : d' \rangle}
+
+  \infer[Drop]{k \not \in \dom{d} \\ \langle m' : d \preceq m : d \rangle}{\langle m'[k \mapsto z] : d \preceq m : d \rangle}
+
+  \infer[Add]{ k \not \in \dom{m} \\ d' = d[k \mapsto \mathtt{M\_INT}] \\ \langle m' : d \preceq m :
+    d \rangle}{ \langle m' : d' \preceq m[k \mapsto \mathtt{M\_MISSING}] : d \rangle}
+\end{mathpar}
 
 \subsection{Full Compatibility Relation}\label{sec:ip-compat-rel}
 Now we develop the full compatibility relation for the intermediate encoding
