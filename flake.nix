@@ -4,8 +4,11 @@
   inputs = {
     nixpkgs.url = "nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
-    cddl.url = "github:anweiss/cddl";
     rust-overlay.url = "github:oxalica/rust-overlay";
+    cddl = {
+      url = "github:anweiss/cddl";
+      inputs.rust-overlay.follows = "rust-overlay";
+    };
   };
 
   outputs =
@@ -40,7 +43,7 @@
               rust-bin.stable.latest.default
 
               # LaTeX
-              texlive.combined.scheme-full
+              texliveFull
             ];
 
             shellHook = "";
