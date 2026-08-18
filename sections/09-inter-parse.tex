@@ -1,4 +1,4 @@
-\section{Intermediate Encoding Format}\label{sec:inter-parse} 
+\section{Intermediate Encoding Format}\label{sec:inter-parse}
 The simple parsing format described in Section~\ref{sec:simpl-parse} was
 designed to show that we could reason about nested messages. However, there are
 more complex parts of Protobuf we need to support before being able to verify
@@ -42,7 +42,7 @@ Represented mathematically, you could describe these types like so:
 \vspace{1em}
 \begin{definition}[Intermediate Descriptor]\label{def:ip-desc}
  An intermediate descriptor is a map from integers representing the field number
- to a field definition, which can either be 
+ to a field definition, which can either be
  \begin{itemize}
  \item A tag denoting a nested message, which also has a nested intermediate descriptor.
  \item A tag denoting a boolean.
@@ -77,7 +77,7 @@ accordingly:
 \item \textbf{Integers:} Encoded into four little-endian bytes. Currently only
   positive integers are supported, but wrapper functions could support negative
   integers by converting them to the equivalent two's-complement positive
-  integer. 
+  integer.
 \item \textbf{Nested Messages:} A length prefixed nested list of key-value
   pairs. The length is encoded as a one byte integer, limiting the format's
   ability to handle nested messages to messages which can be encoded into 255 or
@@ -88,7 +88,7 @@ accordingly:
 Each field is then encoded first with the one byte field ID number, then the
 encoding described above. A message is a list of key-value pairs. Assuming every
 field you have encoded is in the descriptor, they can all be parsed in a
-self-contained manner.  
+self-contained manner.
 
 \subsection{Missing Values \& Descriptor Mismatches}\label{sec:ip-missing}
 The presence of missing values and a dependency on a descriptor complicates our
@@ -118,21 +118,21 @@ expanded to
   A serializer $ser$ with well-formed condition $wf$ is relational correct with
   respect to a parser $par$ and relation $R$ if
   \[ \forall\ x\ enc\ rest,\;wf\ x \to ser\ x = \mathtt{Success}\ enc \rightarrow \exists\ x',\;par\ (enc
-    \mdoubleplus rest) = \mathtt{Success}\ x\ rest \wedge R\ x\ x' \]
+    \mdoubleplus rest) = \mathtt{Success}\ x'\ rest \wedge R\ x\ x' \]
 \end{definition}
 
 Since our format requires a descriptor to differentiate between fields, and does
 not support arbitrary suffixes (since the top level message isn't length limited
 in any way and you could always have another field encoded in the suffix), we
-need a modified version of Definition~\ref{def:simp-pc}. % FIXME: why is this number wrong?
+need a modified version of Definition~\ref{def:simp-pc}.
 
 \vspace{1em}
 \begin{definition}[Relational Parser Correctness]
   A serializer $ser$ with well-formed condition $wf$ is relational correct with
   respect to a parser $par$, descriptor $d$ and relation $R$ if
   \[ \forall\ x\ enc,\;wf\ x \to ser\ d\ x = \mathtt{Success}\ enc \rightarrow \exists\ x',\;par\ d\ enc
-    = \mathtt{Success}\ x\ \texttt{[]} \wedge R\ d\ x\ x' \]
-\end{definition}\label{def:simp-pc}
+    = \mathtt{Success}\ x'\ \texttt{[]} \wedge R\ d\ x\ x' \]
+\end{definition}\label{def:rpc}
 
 This definition already looks like our definition of compatibility
 (Definition~\ref{def:compat}), with just an extra check that the serializer
@@ -175,7 +175,7 @@ both sides of the compatibility relation, it's been written for maximum
 flexibility and to generalize to a more complex relation.
 
 \begin{mathpar}
-  \infer[Compat-Refl]{\langle m : d_1 \rangle \\ \langle m : d_2 \rangle}{\langle m : d_1 \preceq m : d_2 \rangle} 
+  \infer[Compat-Refl]{\langle m : d_1 \rangle \\ \langle m : d_2 \rangle}{\langle m : d_1 \preceq m : d_2 \rangle}
 
   \infer[Compat-Add]{\langle m_1 : d_1 \preceq m_2 : d_2 \rangle \\\\ k \not \in \dom{m_1} \\ k \not \in
     \dom{d_2} \\ k \not \in \dom{m_2} \\ k \not \in \dom{d_2} \\\\ v_1 = v_2 \\ f_1
@@ -201,16 +201,16 @@ matching types.
   \infer[Insert]{d' = d[k \mapsto \mathtt{F\_INT}] \\ \langle m' : d \preceq m : d \rangle}{\langle m'[k \mapsto z]
     : d' \preceq m[k \mapsto z] : d' \rangle}
 
-  \infer[Drop]{k \not \in \dom{d} \\ \langle m' : d \preceq m : d \rangle}{\langle m'[k \mapsto z] : d \preceq m : d \rangle}
+  \infer[Drop]{k \not \in \dom{d} \\ k \not \in \dom{m} \\ \langle m' : d \preceq m : d \rangle}{\langle m'[k \mapsto z] : d \preceq m : d \rangle}
 
-  \infer[Add]{ k \not \in \dom{m} \\ d' = d[k \mapsto \mathtt{M\_INT}] \\ \langle m' : d \preceq m :
-    d \rangle}{ \langle m' : d' \preceq m[k \mapsto \mathtt{M\_MISSING}] : d \rangle}
+  \infer[Add]{ k \not \in \dom{m} \\ d' = d[k \mapsto \mathtt{F\_INT}] \\ \langle m' : d \preceq m :
+    d \rangle}{ \langle m' : d' \preceq m[k \mapsto \mathtt{M\_MISSING}] : d' \rangle}
 \end{mathpar}
 
 \subsection{Full Compatibility Relation}\label{sec:ip-compat-rel}
 Now we develop the full compatibility relation for the intermediate encoding
 format. Like with the protobuf relations, this will be separated into a value
-relation, type relation and message relation. 
+relation, type relation and message relation.
 \begin{align*}
   m &: \text{message} & v &: \text{value} \\
   d &: \text{descriptor} & f &: \text{field} \\
@@ -255,7 +255,7 @@ Just like with the value relation, we can freely convert between integer and
 boolean fields.
 
 \begin{mathpar}
- \infer[F-Bool-Int]{ }{\mathtt{bool} \propto \mathtt{int}} 
+ \infer[F-Bool-Int]{ }{\mathtt{bool} \propto \mathtt{int}}
 
  \infer[F-Int-Bool]{ }{\mathtt{int} \propto \mathtt{bool}}
 
