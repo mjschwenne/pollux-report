@@ -294,9 +294,9 @@ fields. This is like width and depth sub-typing for record types.
   \infer[M-Emp]{ }{\emptyset : \emptyset \preceq \emptyset : \emptyset}
 
   \infer[M-Add]{m_1 : d_1 \preceq m_2 : d_2 \\ v : f \\\\ k \not \in \dom{m_1} \\ k \not \in
-    \dom{d_1}}{ m_1 : d_1 \preceq m_2[k \mapsto v] : d[k \mapsto f]}
+    \dom{d_1}}{ m_1 : d_1 \preceq m_2[k \mapsto v] : d_2[k \mapsto f]}
 
-  \infer[M-Update]{m_1 : d_1 \preceq m_2 : d_2 \\\\ m[k] : d_1[k] \prec v : f \\ d_1[k] \propto f}{ m : d_1 \preceq m[k
+  \infer[M-Update]{m_1 : d_1 \preceq m_2 : d_2 \\\\ m_1[k] : d_1[k] \prec v : f \\ d_1[k] \propto f}{ m_1 : d_1 \preceq m_2[k
     \mapsto v] : d_2[k \mapsto f]}
 
   \infer[M-Refl]{ }{ m : d \preceq m : d}
