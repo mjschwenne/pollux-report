@@ -288,6 +288,14 @@ moment I've decided to split them out.
 Just like with the Protobuf relation, we can add fields or change existing
 fields. This is like width and depth sub-typing for record types.
 
+It is worth noting that we \emph{cannot} add a \textsc{D-Drop} rule to this
+relation. When parsing a field that's not in the descriptor, there is currently
+no why to distinguish between a primitive (integer or Boolean) and a nested
+message in the wire format. We'd parse the field ID and realize we need to skip
+the field, but not know if the field is a 4 byte primitive or a nested message
+of dynamic length. This restriction will be fixed in a full protobuf
+implementation.
+
 \subsubsection{Message Relation}\label{sec:ip-msg-rel}
 
 \begin{mathpar}
@@ -296,8 +304,17 @@ fields. This is like width and depth sub-typing for record types.
   \infer[M-Add]{m_1 : d_1 \preceq m_2 : d_2 \\ v : f \\\\ k \not \in \dom{m_1} \\ k \not \in
     \dom{d_1}}{ m_1 : d_1 \preceq m_2[k \mapsto v] : d_2[k \mapsto f]}
 
+  \infer[M-Missing]{m_1 : d_1 \preceq m_2 : d_2 \\\\ k \not \in \dom{m_1} \\ k \not \in
+    \dom{d_1}}{ m_1 : d_1 \preceq m_2[k \mapsto \mathtt{M\_MISSING}] : d_2[k \mapsto f]}
+
   \infer[M-Update]{m_1 : d_1 \preceq m_2 : d_2 \\\\ m_1[k] : d_1[k] \prec v : f \\ d_1[k] \propto f}{ m_1 : d_1 \preceq m_2[k
     \mapsto v] : d_2[k \mapsto f]}
+
+  \infer[M-Drop]{m_1 : d_1 \preceq m_2 : d_2 \\\\ k \not \in \dom{m_2} \\ k \not
+    \in \dom{d_2}}{ m_1[k \mapsto v] : d_1[k \mapsto f] \preceq m_2 : d_2 }
+
+  \infer[M-Drop-Unknown]{m_1 : d_1 \preceq m_2 : d_2 \\\\ k \not \in \dom{m_2} \\ k \not
+    \in \dom{d_2} \\ k \not \in \dom{d_1}}{ m_1[k \mapsto v] : d_1 \preceq m_2 : d_2 }
 
   \infer[M-Refl]{ }{ m : d \preceq m : d}
 
