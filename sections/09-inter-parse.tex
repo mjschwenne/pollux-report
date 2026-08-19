@@ -198,13 +198,23 @@ matching types.
 \begin{mathpar}
   \infer[Empty]{ }{\langle \emptyset : \emptyset \preceq \emptyset : \emptyset \rangle}
 
-  \infer[Insert]{d' = d[k \mapsto \mathtt{F\_INT}] \\ \langle m' : d \preceq m : d \rangle}{\langle m'[k \mapsto z]
+  \infer[Insert-Int]{d' = d[k \mapsto \mathtt{F\_INT}] \\ \langle m' : d \preceq m : d \rangle}{\langle m'[k \mapsto z]
     : d' \preceq m[k \mapsto z] : d' \rangle}
+
+  \infer[Insert-Bool]{d' = d[k \mapsto \mathtt{F\_BOOL}] \\ \langle m' : d \preceq m : d \rangle}{\langle m'[k \mapsto b]
+    : d' \preceq m[k \mapsto b] : d' \rangle}
+
+  \infer[Insert-Msg]{d' = d[k \mapsto \mathtt{F\_MSG}\ d_n] \\\\ \langle m' : d \preceq m : d \rangle \\ \langle
+    m_n' : d_n \preceq m_n : d_n \rangle}{\langle m'[k \mapsto \mathtt{M\_MSG}\ m_n'] : d' \preceq m[k \mapsto
+    \mathtt{M\_MSG}\ m_n] : d' \rangle}
 
   \infer[Drop]{k \not \in \dom{d} \\ k \not \in \dom{m} \\ \langle m' : d \preceq m : d \rangle}{\langle m'[k \mapsto z] : d \preceq m : d \rangle}
 
-  \infer[Add]{ k \not \in \dom{m} \\ d' = d[k \mapsto \mathtt{F\_INT}] \\ \langle m' : d \preceq m :
+  \infer[Add-Missing]{ k \not \in \dom{m} \\ d' = d[k \mapsto f] \\ \langle m' : d \preceq m :
     d \rangle}{ \langle m' : d' \preceq m[k \mapsto \mathtt{M\_MISSING}] : d' \rangle}
+
+  \infer[Input-Missing]{k \not \in \dom{d} \\ k \not \in \dom{m} \\ k \not \in
+    \dom{m'} \\\\ d' = d[k \mapsto f]}{\langle m'[k \mapsto \mathtt{M\_MISSING}] : d' \preceq m[k \mapsto \mathtt{M\_MISSING}] : d' \rangle}
 \end{mathpar}
 
 \subsection{Full Compatibility Relation}\label{sec:ip-compat-rel}
@@ -224,7 +234,7 @@ explanation of how to read them.
   \propto &: \text{Field type relation} & f_1 \propto f_2 &\rightarrow ``f_1 \text{ is type-compatible with }
                                           f_2" \\
   \ll &: \text{Descriptor type relation} & d_1 \ll d_2 &\rightarrow ``d_1 \text{ is
-                                                     descriptor-compatible with} d_2" \\
+                                                     descriptor-compatible with } d_2" \\
   \preceq &: \text{Message relation} & m_1 \preceq m_2 &\rightarrow ``\text{message } m_1 \text{ becomes } m_2"
 \end{align*}
 
@@ -301,11 +311,14 @@ implementation.
 \begin{mathpar}
   \infer[M-Emp]{ }{\emptyset : \emptyset \preceq \emptyset : \emptyset}
 
-  \infer[M-Add]{m_1 : d_1 \preceq m_2 : d_2 \\ v : f \\\\ k \not \in \dom{m_1} \\ k \not \in
-    \dom{d_1}}{ m_1 : d_1 \preceq m_2[k \mapsto v] : d_2[k \mapsto f]}
+  {\color{red}\infer[M-Add]{m_1 : d_1 \preceq m_2 : d_2 \\ v : f \\\\ k \not \in \dom{m_1} \\ k \not \in
+    \dom{d_1}}{ m_1 : d_1 \preceq m_2[k \mapsto v] : d_2[k \mapsto f]}}
 
   \infer[M-Missing]{m_1 : d_1 \preceq m_2 : d_2 \\\\ k \not \in \dom{m_1} \\ k \not \in
     \dom{d_1}}{ m_1 : d_1 \preceq m_2[k \mapsto \mathtt{M\_MISSING}] : d_2[k \mapsto f]}
+
+  \infer[M-Declare]{m_1 : d_1 \preceq m_2 : d_2 \\\\ k \not \in
+    \dom{d_1} \\ k \not \in \dom{m_1}}{ m_1 : d_1[k \mapsto f] \preceq m_2[k \mapsto \mathtt{M\_MISSING}] : d_2[k \mapsto f]}
 
   \infer[M-Update]{m_1 : d_1 \preceq m_2 : d_2 \\\\ m_1[k] : d_1[k] \prec v : f \\ d_1[k] \propto f}{ m_1 : d_1 \preceq m_2[k
     \mapsto v] : d_2[k \mapsto f]}
@@ -327,6 +340,11 @@ We can add new key-value pairs to a message, or update the value in a message
 premise $v : f$ in the rule \textsc{M-Add} denotes that the value $v$ is aligns
 with the field $f$, i.e. $v$ is an integer and $f$ is \verb|F_INT|. It would not
 hold if $v = \mathtt{true}$ and $f$ was \verb|F_INT|.
+
+The highlighted rule would let the parser pull any correctly typed value out of
+thin air. Do we want this? No, the $\preceq$ relation defines how a message is
+transmuted during the serializer / parser round trip, and that's not how the
+parser would behave.
 
 % Local Variables:
 % citar-bibliography: ("../pollux.bib")
