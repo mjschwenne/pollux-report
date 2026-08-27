@@ -1,0 +1,18 @@
+\section{Protobuf Compatibility}\label{sec:proto-compat}
+
+This section will detail the LEAN formalization of Protobuf that's being
+developed for Pollux.
+
+The intermediate encoding format used a custom extensionality theorem over a
+descriptor structured as a list to show that descriptors were equal. This was
+required since Lean's finite maps (unlike Rocq's \texttt{gmap}) can't be placed
+inside of inductive types. That's a clunky choice which was not what I wanted
+when I told Aristotle ``I want extensionality on my descriptors'', but I kinda
+just lived with it. Well, the full protobuf descriptors we're taking a more
+principled approach that can fall back on the vast support of Mathlib.
+
+% Local Variables:
+% citar-bibliography: ("../pollux.bib")
+% TeX-master: "../pollux.tex"
+% jinx-local-words: "protobuf"
+% End:

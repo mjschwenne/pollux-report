@@ -317,8 +317,9 @@ implementation.
   \infer[M-Missing]{m_1 : d_1 \preceq m_2 : d_2 \\\\ k \not \in \dom{m_1} \\ k \not \in
     \dom{d_1}}{ m_1 : d_1 \preceq m_2[k \mapsto \mathtt{M\_MISSING}] : d_2[k \mapsto f]}
 
-  \infer[M-Declare]{m_1 : d_1 \preceq m_2 : d_2 \\\\ k \not \in
-    \dom{d_1} \\ k \not \in \dom{m_1}}{ m_1 : d_1[k \mapsto f] \preceq m_2[k \mapsto \mathtt{M\_MISSING}] : d_2[k \mapsto f]}
+  \infer[M-Declare]{m_1 : d_1 \preceq m_2 : d_2 \\\\ k \not \in \dom{d_1} \\ k \not \in
+    \dom{m_1} \\ f_1 \propto f_2}{ m_1 : d_1[k \mapsto f_1] \preceq m_2[k \mapsto \mathtt{M\_MISSING}] :
+    d_2[k \mapsto f_2]}
 
   \infer[M-Update]{m_1 : d_1 \preceq m_2 : d_2 \\\\ m_1[k] : d_1[k] \prec v : f \\ d_1[k] \propto f}{ m_1 : d_1 \preceq m_2[k
     \mapsto v] : d_2[k \mapsto f]}
@@ -345,6 +346,11 @@ The highlighted rule would let the parser pull any correctly typed value out of
 thin air. Do we want this? No, the $\preceq$ relation defines how a message is
 transmuted during the serializer / parser round trip, and that's not how the
 parser would behave.
+
+In \textsc{M-Declare}, we require $f_1 \propto f_2$ so that we can handle examples
+were an empty message under a descriptor with one boolean parses to an empty
+field under a different, compatible type. This continues to mirror how the
+parser and serializer would actually behave.
 
 % Local Variables:
 % citar-bibliography: ("../pollux.bib")
