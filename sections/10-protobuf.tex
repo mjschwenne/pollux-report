@@ -1,6 +1,6 @@
 \section{Protobuf Compatibility}\label{sec:proto-compat}
 
-This section will detail the LEAN formalization of Protobuf that's being
+This section will detail the Lean formalization of Protobuf that's being
 developed for Pollux.
 
 The intermediate encoding format used a custom extensionality theorem over a
@@ -10,6 +10,134 @@ inside of inductive types. That's a clunky choice which was not what I wanted
 when I told Aristotle ``I want extensionality on my descriptors'', but I kinda
 just lived with it. Well, the full protobuf descriptors we're taking a more
 principled approach that can fall back on the vast support of Mathlib.
+
+Instead, the full protobuf descriptors take a different approach, using a
+dependently typed list internally but exposing a view of the descriptor using a
+proper finite map.
+
+\begin{minted}{lean}
+mutual
+/-- A message descriptor: field numbers to field declarations. -/
+inductive Desc where
+  | mk (es : List ((_ : Int) × Field))
+/-- A field declaration: cardinality plus type. -/
+inductive Field where
+  | mk (card : Cardinality) (ty : FieldType)
+/-- A field's type: scalar, or a nested message descriptor. -/
+inductive FieldType where
+  | scalar (s : ScalarType)
+  | msg (d : Desc)
+end
+
+/-- **The interface**: one-layer view of a descriptor as a genuine mathlib
+    map. Nested `.msg` payloads remain sealed `Desc` handles. All theorem
+    statements outside this file consume descriptors through `explode` and
+    its derived lookup `get?`. -/
+def explode (d : Desc) : Finmap (fun _ : Int => Field) :=
+  d.entries.toFinmap
+\end{minted}
+
+The use of the sigma type is important, since it let's us tie into the existing
+Mathlib infrastructure for building a finite map from from the list
+internals. The basic idea is that the descriptor itself is \emph{sealed}, and we
+can explode one layer at a time to get a view of the descriptor through the lens
+of a finite map which should enable reasoning about the descriptor using the
+theory from Mathlib. This approach also is designed to respect these
+requirements:
+
+\begin{itemize}
+\item \textbf{Kernel Acceptance.} Clearly we need a representation that Lean can
+  handle. Under this choice, we're not storing the map directly but are still
+  able to indirectly access other theorems about it.
+\item \textbf{Extensionality.} The existing formulation certain variants of the
+  compatibility theorems state that we recover not an equivalent value, but an
+  \emph{equal} value, which \texttt{Finmap} provides.
+\item \textbf{Termination Measures.} Since we have nested messages, we need to
+  ensure that we can safely traverse the descriptor and recurse on the
+  descriptor. Pervious formats, like the intermediate one, defined a custom
+  termination metric by noting that the depth nested descriptor must be smaller
+  than the containing descriptor. This works well for tree-like descriptors, but
+  Protobuf does support recursive and mutually-recursive messages definitions,
+  which cannot be represented by this descriptor type.
+\item \textbf{Forward Compatibility.} Protobuf can represent it's own
+  descriptors, but not without recursive messages. Eventually we'll have to
+  support getting a descriptor into the Lean formalization, and one option is to
+  model a descriptor as a value of \texttt{descriptor.proto} and then build the
+  descriptor from that information. This is common in real-world protobuf
+  implementations, and the sealed design should still work for this approach.
+\end{itemize}
+
+\subsection{Sealed \& Unsealed}
+
+Descriptors should be sealed. Looking at how the code for the intermediate
+format is structured, descriptors are never consumed more than one layer at a
+time. The serializer iterates values, not the descriptor. While looking at a
+message, we check against fields as we encounter them in the value.
+
+However, values do need to iterated over and are the basis for round-trip
+proofs. Sealing the values within the parser and serializer implementation would
+create more work than we desire, although the theorems will still be able to use
+a variant of the explode operator if it makes more sense.
+
+\subsection{Considerations about Ordering \& Determinism}
+
+The Protobuf spec permits serializing and parsing fields in any order, which
+seems at odd with the choice to represent the fields in a sorted list. It should
+be possible to explode a layer and use the undefined iteration order of the
+\texttt{Finmap} to be as generalize as possible with regards to that Protobuf
+spec. However,
+
+\begin{itemize}
+\item Having the serializer return data in any order would mean that it isn't a
+  pure function, which is difficult to represent in Lean. We could quotient over
+  the ordering of the fields, but then we'd have to prove that every other
+  function consuming the serialized output also respects the quotient type,
+  which is possible but a lot of work.
+\item The exact output from the parser is descriptor dependent as well as value
+  dependent (recall that we can't know what value is encoded without needing to
+  to a descriptor, see Section~\ref{sec:philosophy}). Having both align as an
+  ordered list reduces map equivalences to syntactic list equality.
+\item The Protobuf spec is also adding a requirement to the parser, that is has
+  to be able to handle encodings which were produced with the fields in an
+  arbitrary order, with last field wins semantics. The existing \texttt{ParseOk}
+  definition used for the intermediate formalization only requires the parser to
+  be correct on the output of our own serializer, not any possible encoding. It
+  will need to be extended with a relational specification which allows the
+  maximum possible amount of non-determinism. The soundness requirement for this
+  specification would require that our serializer produces values that satisfy
+  the relational spec while completeness would require that any encoding in the
+  relational specification can be parsed correctly.
+\end{itemize}
+
+\subsection{New Protobuf Features}
+
+There are three new, notable features in Protobuf that were missing from the
+intermediate formate entirely.
+
+\begin{itemize}
+\item \textbf{Cardinality.} The intermediate format only had scalar values, but
+  full Protobuf has repeated values. (Optional values and implicit values are
+  already extremely similar, so the addition of repeated values is the most
+  important). 
+\item \textbf{Maps.} Maps are easy to support since we can just desugar them, as
+  described in Section~\ref{sec:proto}, with a few additions for the
+  restrictions on map key type and the like.
+\item \textbf{Oneof.} On the wire, a \texttt{oneof} is invisible. There is no
+  information included in the wire level format to describe that a field is in a
+  \texttt{oneof}, it's another one of those things that we have to have a
+  descriptor to know about. Individual fields still have their own field number,
+  which is encoded, that comes from the name space of the whole message. The
+  \texttt{oneof} really adds a parser semantic requirement about clearing the
+  old field if we encounter a new encoded field in the same \texttt{oneof}, and
+  overall constraint on the final message that at most one of the fields will be
+  set. The \texttt{oneof} is then represented as a cardinality, with some extra
+  information to determine which \texttt{oneof} in the message this field
+  belongs to. This exactly mirrors how the \texttt{descriptor.proto} operates,
+  and we can use natural number equality to scan the value and clear old set
+  fields when needed. Since each field has exactly one cardinality, this already
+  enforces that we can't have repeated fields inside a oneof and that a oneof
+  can't be empty.
+\end{itemize}
 
 % Local Variables:
 % citar-bibliography: ("../pollux.bib")

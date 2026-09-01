@@ -15,26 +15,39 @@ These important features were added to the intermediate encoding format:
 \end{itemize}
 
 \subsection{Type Definitions}\label{sec:ip-types}
-Below is the Rocq definitions for a descriptor and message. Both use a
-\texttt{gmap} from the \texttt{stdpp} library to view a descriptor or message
-respectively as a thinly wrapped map. Notice that these are mutually inductive
-types, with a \texttt{Field} able to hold a \texttt{Desc} for a nested message.
+Below is the Lean definitions for a descriptor and message. Unlike the original
+Rocq code, which use a \texttt{gmap} from the \texttt{stdpp}, Lean's finite maps
+cannot be nested into an inductive type. Instead, the intermediate format models
+the descriptors and a list of key-value pairs, then requires theorems over them
+maintain a well-formedness invariant that the list is sorted and contains no
+duplicates. Notice that these are mutually inductive types, with a
+\texttt{Field} able to hold a \texttt{Desc} for a nested message.
 
-\begin{minted}{coq}
-    Inductive Desc : Set := DESC (fs : gmap Z Field)
-    with
-      Field :=
-    | F_MSG (d : Desc)
-    | F_BOOL
-    | F_INT.
+\begin{minted}{lean}
+-- A descriptor maps field numbers (integers) to field types.
+-- Mutually defined with `Field` which may contain nested descriptors.
+--- Corresponds to `Desc`/`Field` from `InterParse/Descriptor.v`.
+mutual
+inductive Desc where
+  | mk (fs : List (Int × Field))
+inductive Field where
+  | msg (d : Desc)
+  | bool
+  | int
+end
 
-    Inductive Message : Set := MSG (vs : gmap Z Value)
-    with
-      Value :=
-    | M_MSG (m : Message)
-    | M_BOOL (b : bool)
-    | M_INT (z : Z)
-    | M_MISSING.
+-- A value maps field numbers to typed values.
+-- Mutually defined with `Val` which may contain nested values.
+-- Corresponds to `Value`/`Val` from `InterParse/Descriptor.v`.
+mutual
+inductive Value where
+  | mk (vs : List (Int × Val))
+inductive Val where
+  | msg (v : Value)
+  | bool (b : Bool)
+  | int (z : Int)
+  | missing
+end
 \end{minted}
 
 Represented mathematically, you could describe these types like so:

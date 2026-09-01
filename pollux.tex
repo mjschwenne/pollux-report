@@ -1,6 +1,8 @@
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{fontspec}
+\setmonofont{JetBrainsMono Nerd Font}
 \usepackage{graphicx}
 \usepackage{longtable}
 \usepackage{booktabs}
@@ -25,13 +27,15 @@
 \usepackage{multirow}
 \usepackage{listings}
 \usepackage{minted}
+\newmintinline[lean]{lean4}{bgcolor=white}
+\newminted[leancode]{lean4}{fontsize=\footnotesize}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{stmaryrd}
 \usepackage[backend=biber,sorting=ynt]{biblatex}
 \usepackage{subfiles}
 \usepackage{xpatch}
-\usepackage{MnSymbol}
+% \usepackage{MnSymbol}
 
 \addbibresource{pollux.bib}
 \author{Matt Schwennesen}
@@ -132,18 +136,9 @@
 \begin{document}
 \maketitle
 
-This is the \LaTeX{} report accompanying my Rocq / Lean development for Pollux,
+This is the \LaTeX{} report accompanying my Lean development for Pollux,
 a verification project focused on the compatibility of data
-descriptors. Unfortunately, my current advisor is leaving academia for an
-industry position, so I'm unsure what the fate of Pollux is. I've given the
-report a once over and I believe that everything is in pretty good shape.
-
-If you're looking to resume working on Pollux, I'd recommend starting with
-Section~\ref{sec:inter-parse}, which generally matches the current state of the
-formalized development. It uses a format simpler than Protobuf but still
-capturing many of the interesting features in Protobuf. One of the key
-advantages here is that the relations presented are simpler, while mirroring the
-structures described in Section~\ref{sec:comp-rel}.
+descriptors.
 
 \tableofcontents
 \input{sections/01-intro.tex}
