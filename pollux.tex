@@ -130,6 +130,26 @@
 \newcommand{\dom}[1]{\mathrm{dom}(#1)}
 \newcommand{\denote}[1]{\llbracket{} #1 \rrbracket{}}
 
+% Varint encode/decode pipeline (Section 5 integer rules).
+% Bare forms for signatures and composition; applied forms for everything else.
+\newcommand{\encop}[1]{\mathrm{enc}_{#1}}
+\newcommand{\decop}[1]{\mathrm{dec}_{#1}}
+\newcommand{\enc}[2]{\encop{#1}\left(#2\right)}
+\newcommand{\dec}[2]{\decop{#1}\left(#2\right)}
+
+\newcommand{\zzop}{\mathrm{zz}}
+\newcommand{\unzzop}{\mathrm{zz}^{-1}}
+\newcommand{\zz}[1]{\zzop\left(#1\right)}
+\newcommand{\unzz}[1]{\unzzop\left(#1\right)}
+
+\newcommand{\tosignedop}[1]{\sigma_{#1}}
+\newcommand{\tosigned}[2]{\tosignedop{#1}\left(#2\right)}
+
+\newcommand{\vints}{\mathcal{V}}
+\newcommand{\payload}{\left[0, 2^{64}\right)}
+\newcommand{\ind}[1]{\mathbb{1}\left[#1\right]}
+\newcommand{\fdiv}[2]{\left\lfloor #1 / #2 \right\rfloor}
+
 \newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
 \newcommand\mdoubleplus{\ensuremath{\mathbin{+\mkern-10mu+}}}
 
