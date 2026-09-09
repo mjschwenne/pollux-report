@@ -35,6 +35,7 @@
 \usepackage[backend=biber,sorting=ynt]{biblatex}
 \usepackage{subfiles}
 \usepackage{xpatch}
+\usepackage{pl-syntax}
 % \usepackage{MnSymbol}
 
 \addbibresource{pollux.bib}
@@ -81,16 +82,27 @@
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
 
+\makeatletter
+\newsavebox{\@brx}
+\newcommand{\llangle}[1][]{\savebox{\@brx}{\(\m@th{#1\langle}\)}%
+  \mathopen{\copy\@brx\mkern2mu\kern-0.9\wd\@brx\usebox{\@brx}}}
+\newcommand{\rrangle}[1][]{\savebox{\@brx}{\(\m@th{#1\rangle}\)}%
+  \mathclose{\copy\@brx\mkern2mu\kern-0.9\wd\@brx\usebox{\@brx}}}
+\makeatother
+
 \newcommand{\fstar}{F$^\star$}
 \renewcommand{\emptyset}{\varnothing}
 \renewcommand{\mod}{\;\%\;}
 
 \newcommand{\impt}[1]{\mathtt{IMP}\ #1}
+\newcommand{\sigt}[1]{\mathtt{SIG}\ #1}
 \newcommand{\optt}[1]{\mathtt{OPT}\ #1}
 \newcommand{\rept}[1]{\mathtt{REP}\ #1}
 \newcommand{\imp}{\mathtt{IMP}}
+\newcommand{\sig}{\mathtt{SIG}}
 \newcommand{\opt}{\mathtt{OPT}}
 \newcommand{\rep}{\mathtt{REP}}
+\newcommand{\oneof}[1]{\texttt{ONE}\ #1}
 
 % Using "s" and "l" as "short" and "long" since LaTeX commands can't contain
 % numbers in their names...
@@ -115,6 +127,8 @@
 \newcommand{\enum}[1]{\texttt{enum}\ #1}
 \newcommand{\str}{\texttt{string}}
 \newcommand{\byt}{\texttt{bytes}}
+\newcommand{\double}{\texttt{double}}
+\newcommand{\float}{\texttt{float}}
 
 \newcommand{\some}[1]{\texttt{Some}\ #1}
 \newcommand{\none}{\texttt{None}}
@@ -124,7 +138,6 @@
 \newcommand{\map}[2]{#1 \rightharpoonup{} #2}
 
 \newcommand{\ptag}[1]{\texttt{#1}}
-\newcommand{\oneof}[1]{\left\{#1\right\}}
 \newcommand{\msg}[2]{(#1,#2)}
 
 \newcommand{\dom}[1]{\mathrm{dom}(#1)}
