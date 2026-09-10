@@ -103,6 +103,28 @@ encoding described above. A message is a list of key-value pairs. Assuming every
 field you have encoded is in the descriptor, they can all be parsed in a
 self-contained manner.
 
+\vspace{1em}
+\begin{definition}[Intermediate Descriptor Well-Formedness]\label{def:inter-dwf}
+  A descriptor $d$ is considered well-formed, denoted $d \checkmark$, if
+  \begin{itemize}
+  \item The keys are stored in sorted order.
+  \item There are no duplicate keys.
+  \end{itemize}
+\end{definition}
+
+\vspace{1em}
+\begin{definition}[Intermediate Value Well-Formedness]\label{def:inter-vwf}
+  A message $m$ is well-formed, denoted $m \checkmark$, if
+  \begin{itemize}
+  \item All keys are in the range 0 to 256.
+  \item All values in the message are type-aligned with the descriptor
+    (i.e.\ integer fields in the descriptor have integer values in the message).
+  \item All integer payloads are within the range of a valid 32-bit unsigned
+    integer.
+  \item All nested messages are also well-formed.
+  \end{itemize}
+\end{definition}
+
 \subsection{Missing Values \& Descriptor Mismatches}\label{sec:ip-missing}
 The presence of missing values and a dependency on a descriptor complicates our
 definition of what it means to successfully serialize and parse. For example, we
@@ -151,19 +173,26 @@ This definition already looks like our definition of compatibility
 (Definition~\ref{def:compat}), with just an extra check that the serializer
 actually succeeds.
 
-\subsection{The Identity Compatibility Relation}\label{sec:id-compat}
-Naturally then, we can pose the descriptor mismatch problem in terms of a
-compatibility relation where the descriptor doesn't change. Since the descriptor
-is always related to itself, this is known as the \emph{identity compatibility
-  relation}. Let $\langle v_1 : d_1 \preceq v_2 : d_2 \rangle$ denote that $v_1$
-when interpreted under $d_1$ is compatible with $v_2$ under $d_2$.
+\subsection{Schema-Correct Compatibility Relation}\label{sec:sc-id-compat}
 
-\subsubsection{Schema Correct Identity Compatibility Relation}\label{sec:sc-id-compat}
 In order to simplify proof burdens for the moment, there is another important
 concept here: when a value is \emph{fully described} or \emph{schema correct} by
 a descriptor. Intuitively, this means that every value is the message has a
 corresponding field in the descriptor and vice versa. This relation is denoted
 as $\langle v : d \rangle$ and is defined with these two rules:
+
+\vspace{1em}
+\begin{definition}[Schema Correct]
+  A value $v$ is \emph{schema correct} with respect to a descriptor $d$ if
+  \begin{itemize}
+  \item Every value in $v$ is declared in $d$.
+  \item Every field in $d$ id present in $v$.
+  \item Every value in $v$ matches the type required by the corresponding field
+    in $d$.
+  \item All nested messages are schema correct with respect to the descriptors
+    embedded in $d$.
+  \end{itemize}
+\end{definition}
 
 \begin{mathpar}
   \infer[SC-emp]{ }{\langle \emptyset : \emptyset \rangle}
@@ -201,6 +230,35 @@ That is also why the \textsc{Compat-Add} rule has premises $v_1 = v_2$ and $f_1
 = f_2$ for a more complex compatibility story, this was call out to the value
 relation (Section~\ref{sec:val-rel}) and type relation (Section~\ref{sec:typ-rel}).
 
+\vspace{1em}
+\begin{lemma}[Intermediate Schema Correct Equal]\label{lem:inter-sc-eq}
+  \[
+    \forall\ m_1, m_2, d_1, d_2.\ \langle m_1 : d_1 \preceq m_2 : d_2 \rangle
+    \rightarrow d_1 = d_2 \rightarrow v_1 = v_2
+  \] 
+\end{lemma}
+
+\vspace{1em}
+\begin{theorem}[Intermediate Schema Correct Round-trip]\label{thm:inter-schema-correct}
+  \[
+    \langle m_1 : d \rangle \rightarrow m_1 \checkmark \rightarrow \forall\ bs, \mathrm{ser}_d(m_1) =
+    bs \rightarrow \exists\ m_2, \mathrm{par}_d(bs) = m_2 \wedge \langle m_1
+    : d \preceq m_2 : d \rangle
+  \]
+\end{theorem}
+
+The immediate corollary of Lemma~\ref{lem:inter-sc-eq} and
+Theorem~\ref{thm:inter-schema-correct} is that the $m_1$ and $m_2$ in the
+theorem statement are equal.  
+
+\subsection{The Identity Compatibility Relation}\label{sec:id-compat}
+Naturally then, we can pose the descriptor mismatch problem in terms of a
+compatibility relation where the descriptor doesn't change. Since the descriptor
+is always related to itself, this is known as the \emph{identity compatibility
+  relation}. Let $\langle v_1 : d_1 \preceq v_2 : d_2 \rangle$ denote that $v_1$
+when interpreted under $d_1$ is compatible with $v_2$ under $d_2$.
+
+
 \subsubsection{Full Identity Compatibility Relation}\label{sec:full-id-compat}
 If we want to relax the requirement that the value is always fulled described by
 the paired descriptor, we have to allow for values to be dropped during
@@ -230,7 +288,22 @@ matching types.
     \dom{m'} \\\\ d' = d[k \mapsto f]}{\langle m'[k \mapsto \mathtt{M\_MISSING}] : d' \preceq m[k \mapsto \mathtt{M\_MISSING}] : d' \rangle}
 \end{mathpar}
 
+\begin{theorem}[Intermediate Identity Compatibility]\label{thm:inter-id-compat}
+  \[
+    d \checkmark \rightarrow m_1 \checkmark \rightarrow \forall\ bs, \mathrm{ser}_d(m_1) =
+    bs \rightarrow \exists\ m_2, \mathrm{par}_d(bs) = m_2 \wedge \langle m_1
+    : d \preceq m_2 : d \rangle
+  \] 
+\end{theorem}
+
+Notice that this theorem has a much weaker precondition, just that the
+descriptor is well-formed rather than that the value is schema-correct and that
+the resulting statement uses a weaker compatibility relation which doesn't have
+a squeeze lemma like the schema correct compatibility relation did
+(Lemma~\ref{lem:inter-sc-eq}).
+
 \subsection{Full Compatibility Relation}\label{sec:ip-compat-rel}
+
 Now we develop the full compatibility relation for the intermediate encoding
 format. Like with the protobuf relations, this will be separated into a value
 relation, type relation and message relation.
@@ -365,8 +438,19 @@ were an empty message under a descriptor with one boolean parses to an empty
 field under a different, compatible type. This continues to mirror how the
 parser and serializer would actually behave.
 
+\vspace{1em}
+\begin{theorem}[Intermediate Compatibility]\label{thm:inter-compat}
+  \[
+    d_1 \checkmark \rightarrow m_1 \checkmark \rightarrow d_2 \checkmark
+    \rightarrow d_1 \ll d_2 \rightarrow \forall\ bs, \mathrm{ser}_{d_1}(m_1) =
+    bs \rightarrow \exists\ m_2, \mathrm{par}_{d_2}(bs) = m_2 \wedge \langle m_1
+    : d_1 \preceq m_2 : d_2 \rangle
+  \] 
+\end{theorem}
+
 % Local Variables:
 % citar-bibliography: ("../pollux.bib")
 % TeX-master: "../pollux.tex"
+% TeX-command-default: "Make"
 % jinx-local-words: "protobuf"
 % End:
