@@ -2,7 +2,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{fontspec}
-\setmonofont{JetBrainsMono Nerd Font}
+\setmonofont{JetBrainsMono Nerd Font}[SizeFeatures={Size=10}]
 \usepackage{graphicx}
 \usepackage{longtable}
 \usepackage{booktabs}
@@ -18,6 +18,7 @@
 \usepackage{amsthm}
 \usepackage{nicematrix}
 \usepackage{mathpartir}
+\usepackage{mathtools}
 \usepackage{parskip}
 \usepackage{float}
 \usepackage[margin=1in]{geometry}
@@ -144,6 +145,7 @@
 
 \newcommand{\dom}[1]{\mathrm{dom}(#1)}
 \newcommand{\denote}[1]{\llbracket{} #1 \rrbracket{}}
+\newcommand{\transform}[3]{\prescript{}{#1}{\llbracket{} #2 \rrbracket{}}_{#3}}
 
 % Varint encode/decode pipeline (Section 5 integer rules).
 % Bare forms for signatures and composition; applied forms for everything else.
@@ -195,6 +197,10 @@ descriptors.
 \input{sections/09-inter-parse.tex}
 
 \input{sections/10-protobuf.tex}
+
+\input{sections/11-type-theoretic.tex}
+
+\input{sections/XX-todo.tex}
 
 \printbibliography{}
 \end{document}

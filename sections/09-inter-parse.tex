@@ -370,6 +370,11 @@ moment I've decided to split them out.
 \subsubsection{Descriptor Type Relation}\label{sec:ip-d-typ-rel}
 
 \begin{mathpar}
+  {\color{red}
+  \infer[D-Update]{ \dom{d_{mand}} \supseteq \dom{d_{mand}'} \\ \forall\ k \in
+    \dom{d} \cap \dom{d'}.\ d[k] \propto d'[k] }{ d \ll d' }
+  }
+
   \infer[D-Emp]{ }{\emptyset \ll \emptyset}
 
   \infer[D-Add]{k \not \in \dom{d}}{d \ll d[k \mapsto f]}
@@ -382,7 +387,10 @@ moment I've decided to split them out.
 \end{mathpar}
 
 Just like with the Protobuf relation, we can add fields or change existing
-fields. This is like width and depth sub-typing for record types.
+fields. This is like width and depth sub-typing for record types. The
+\textsc{D-Update} incorporates both width and depth sub-typing on mandatory
+fields (not yet supported by the Pollux framework) and that all fields which
+align between the descriptors have a compatible type.
 
 It is worth noting that we \emph{cannot} add a \textsc{D-Drop} rule to this
 relation. When parsing a field that's not in the descriptor, there is currently

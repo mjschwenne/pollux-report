@@ -287,8 +287,7 @@ is encoded as $2 \times |n| - 1$. Using bit-shift operators, this would be
     \vdots & \vdots \\
     \bottomrule
   \end{tabular}
-\caption{Some zig zag encoded integers}
-\label{tab:zigzag}
+\caption{Some zig zag encoded integers}\label{tab:zigzag}
 \end{table}
 
 While the zig-zag encoding does save space for smaller negative values in
@@ -296,7 +295,31 @@ particular, it does increase the amount of space required to encode large
 positive values, which is why it isn't the standard encoding for signed
 integers. 
 
+\subsubsection{Packed Values}\label{sec:packed}
+
+Starting with Proto 3 and holding true into the editions Protobuf ideology,
+\texttt{repeated} fields of scalar values are packed into one \texttt{LEN}
+field by default. This can be disabled by setting an attribute the field, i.e.:
+
+\begin{minted}{proto}
+repeated int32 samples = 4 [packed = false];
+\end{minted}
+
+\subsubsection{Last Writer Wins}\label{sec:last-writer-wins}
+
+For non-\texttt{repeated} fields, it's expected that a Protobuf serializer will
+not emit a field multiple times. However, the specification still requires that
+parsers are able to handle the case where it does.
+
+\begin{itemize}
+\item For a scalar field or a string, the last value to appear in the byte
+  stream is the value that's used.
+\item The specification doesn't state what happens with \texttt{byte} fields.
+\item \textbf{Messages are merged!}
+\end{itemize}
+
 % Local Variables:
 % citar-bibliography: ("../pollux.bib")
+% TeX-command-default: "Make"
 % TeX-master: "../pollux.tex"
 % End:

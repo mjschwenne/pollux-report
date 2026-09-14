@@ -42,7 +42,28 @@ formats. It should also be possible to include some analysis of the source code
 operating on the state to prove more invasive updates, or even the proofs of
 verified pieces of software, although that is a goal for a longer timescale.
 
+\subsection{Versioned Formats}
+
+Now, technically speaking, this problem is solved from a practical
+standpoint. What you'd do is encode the version number at the very beginning of
+the encoded blob and then parse just that data at first in order to decide which
+versions parser to use. However, many commonly used data descriptor languages
+like Protobuf, JSON, ASN1, etc, don't have built in mechanisms for this. Some
+encode which version of the wire protocol they use, which is a helpful feature,
+but not which version of \emph{your message} this is. For large messages, having
+to parse under multiple descriptors might be an unacceptable performance hit.
+
+\subsection{Impact on Verified Systems}
+
+With the rise of AI and agentic proofs, expect to see more and more verified
+systems implemented and deployed. As more verified systems enter the real world,
+eventually they'll need to be updated. However, the verification process will
+likely only verify that if a message is encoded under the correct descriptor,
+the system will behave correctly. Encountering a message encoded under an old
+descriptor side-steps the verification guarantees entirely.
+
 % Local Variables:
 % citar-bibliography: ("../pollux.bib")
+% TeX-command-default: "Make"
 % TeX-master: "../pollux.tex"
 % End:
