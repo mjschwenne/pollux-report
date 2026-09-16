@@ -38,8 +38,8 @@ we want to show that two descriptors are compatible if $\varnothing \vdash d \ll
 
   d_2 := \mu\ X.\ G\ X 
 
-  d_1 \ll d_2 := \exists\ f: A \rightarrow B.\ \forall\ m \checkmark^{d_1}.\ \exists\ bs, m' \checkmark^{d_2}.\ \mathrm{ser}_{d_1}(m) = bs \wedge
-  \mathrm{parse}_{d_2}(bs) = m' \wedge f(m) = m'
+  d_1 \ll d_2 := \exists\ f: A \rightarrow B.\ \forall\ m \checkmark^{d_1}.\ \exists\ bs.\ \mathrm{Encodes}_{d_1}(m, bs) = bs \wedge
+  \mathrm{parse}_{d_2}(bs) = f(m)
 \end{mathpar}
 
 In English, then the definition of two descriptors being compatible is that
@@ -61,6 +61,25 @@ insight into how to write the transformation, while we've observed that having
 the relation provides a structure that the transformation mirrors. Additionally,
 I personally think that the relation on descriptors provides a nice way to check
 compatibility without having to construct the transformation directly.
+
+We can take this view even farther though, and make the argument that Pollux
+become a type system which can characterize functions over messages has a
+compatible transformation.
+
+\[ \vDash f : d_1 \preceq d_2 \rightarrow \forall\ m \checkmark^{d_1}.\ \exists\ bs.\ \mathrm{Encodes}_{d_1}(m, bs) \wedge
+  \mathrm{parse}_{d_2}(bs) = f(m) \]
+
+Then we end up with a syntactic typing judgment on the descriptors themselves,
+related to what we can convert between, and a semantic typing judgment on the
+transformation between the descriptors. Pulling in the recursive type view of
+the descriptors, we'd end up with a typing rule something like this (likely
+\emph{not} actually correct):
+
+\[ \infer{ X : \mu\ F \preceq \mu\ G \vdash f : F(\mu\ F) \preceq G(\mu\ G) }{\vDash \mu\ X.f : \mu\ F \preceq \mu\ G} \]
+
+This is basically a logical relation in disguise. We want to prove something
+about the transformation functions (which is an infinite family of functions),
+and to do so we build the descriptor relation as a guide.
 
 % Local Variables:
 % citar-bibliography: ("../pollux.bib")

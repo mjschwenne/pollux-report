@@ -21,8 +21,7 @@ variants with subscript numbers or apostrophes.
   m &: \text{message} & v &: \text{value} \\
   id &: \text{field number} & \tau &: \text{type} \\
   r &: \text{Reserved field set} & \mathtt{n},\ \mathtt{m} &: \text{bit width} \\
-  f &: \text{Field map} & e &: \text{enum} \\
-  s &: \text{Field name} & d &: \text{decorator}
+  f &: \text{Field map} & c &: \text{cardinality}
 \end{align*}
 
 Below is a list of the relations about to be defined, along with an English
@@ -138,9 +137,8 @@ to modulus using floored division, so $-1 \mod 2 = 1$ and the rules are
 written with truncated integer division.
 
 Let $\vints = \left\{ \uintn{n}, \intn{n}, \sintn{n}, \bool \right\}$ represent
-the protobuf types encoded on the wire as a variable-width integer. Some rules
-might show enums, which are encoded this way, but until their formalization is
-planned, these are all draft rules. For each $\tau \in \vints$, let
+the protobuf types encoded on the wire as a variable-width integer. For each
+$\tau \in \vints$, let
 \begin{align*}
   \encop{\tau} &: \denote{\tau} \rightarrow \payload \\
   \decop{\tau} &: \payload \rightarrow \denote{\tau}
@@ -165,7 +163,6 @@ makes use of the following definitions.
     \texttt{int[n]} & $v \mod 2^{64}$ & $((x + 2^{n-1}) \mod 2^n) - 2^{n-1}$ \\
     \texttt{sint[n]} & $\zz{v}$ & $\unzz{x \mod 2^n}$ \\
     \texttt{bool} & $\ind{v}$ & $x \ne 0$ \\
-    {\color{red} \texttt{enum} $e$} & $v \mod 2^{64}$ & $((x + 2^{31}) \mod 2^{31}) - 2^{31}$ \\
     \bottomrule
   \end{tabular}
   \caption[Encoding and decoding rules for Varint conversions.]{Payload written
@@ -216,9 +213,9 @@ converting between varint scalars.
     covers all thirty non-identity conversions.}\label{tab:varint-derived}
 \end{table}
 
-\subsubsection{Message \& Enum Rules}
+\subsubsection{Message Rules}
 
-Definitions for the structure of a message and enum are given in
+Definitions for the structure of a messages are given in
 Section~\ref{sec:msg-rel}. The values are represented as a mapping from the id
 number of each field to the value and type of that field. 
 
@@ -226,8 +223,6 @@ number of each field to the value and type of that field.
   \infer[Msg]{\msg{r_1}{f_1} \preceq \msg{r_2}{f_2} \\ \forall\;i \in \dom{v_2}.\;\left( f_1(i) =
       (s, \tau_1) \wedge v_1(i) \prec v_2(i) \right) \vee v_2(i) = default\left(\mathtt{snd}\ f_2(i)\right)}
   {v_1 : \mathtt{MSG}\ \msg{r_1}{f_1} \prec v_2 : \mathtt{MSG}\ \msg{r_2}{f_2} }
-  
-  \infer[Enum]{v \in e_2}{v : \enum{e_1} \prec v : \enum{e_2}}
 \end{mathpar}
 
 The first rule is complex. It stands that a message with some reserved fields
@@ -235,9 +230,6 @@ and field definitions can be interpreted as a message with a different set of
 reserved fields and field definitions if the two descriptors are compatible and
 if for all fields in the resulting value, either (1) it has a compatible value
 (2) it has the default value.
-
-The second rule simply states that the value of an enum $e_1$ is also defined in
-enum $e_2$.
 
 \subsubsection{Decorator Rules}
 
@@ -317,12 +309,10 @@ usage of Pollux as a rule should probably remove \sints{} and \sintl{} from the
 \textsc{Int-Int-T} rule. The inclusion of those integer types here also diverges
 from Protobuf's official compatibility guide \cite{LanguageGuideProto}.
 
-\subsubsection{Message \& Enum Rules}
+\subsubsection{Message Rules}
 
 \begin{mathpar}
   \infer[Msg-T]{m_1 \preceq m_2}{\mathtt{MSG}\ m_1 \propto \mathtt{MSG}\ m_2}
-
-  \infer[Enum-T]{e_1 \subset e_2}{\enum{e_1} \propto \enum{e_2}}
 \end{mathpar}
 
 \subsubsection{Decorator Rules}
